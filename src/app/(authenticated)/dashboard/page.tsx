@@ -5,6 +5,8 @@ const cards = [
 	{ href: "/ordens-servico", label: "Ordens de Serviço", description: "Acompanhar serviços" },
 	{ href: "/caixa", label: "Fluxo de Caixa", description: "Entradas e saídas" },
 	{ href: "/orcamentos", label: "Orçamentos", description: "Gerar orçamentos em PDF" },
+	{ href: "/catalogo", label: "Catálogo", description: "Itens e serviços cadastrados" },
+	{ href: "/usuarios", label: "Usuários", description: "Gerenciar usuários do sistema" },
 ];
 
 export default function DashboardPage() {

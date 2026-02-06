@@ -36,11 +36,16 @@ Este documento serve como **fonte única de verdade funcional e técnica** para 
 
 ## Perfis de Usuário
 
-### Usuário Único (inicial)
+### Administrador (admin)
 
-* Dono da oficina ou atendente
-* Acesso total às funcionalidades
-* Sem controle de permissões na primeira versão
+* Acesso total a todas as funcionalidades
+* Pode criar, editar, bloquear e excluir outros usuários
+* Pode alterar senhas e perfis de outros usuários
+
+### Usuário (user)
+
+* Acesso às funcionalidades operacionais (clientes, OS, caixa, orçamentos, catálogo)
+* Sem acesso à gestão de usuários
 
 ---
 
@@ -212,15 +217,52 @@ Na interface, o usuário pode:
 
 ---
 
+### 6. Gestão de Usuários (Admin)
+
+**Objetivo**: Permitir que o administrador gerencie os usuários do sistema.
+
+**Acesso**: Exclusivo para usuários com perfil `admin`.
+
+**Funcionalidades**:
+
+* Listar todos os usuários
+* Criar novo usuário (com nome, email, senha e perfil)
+* Editar dados de um usuário (nome, email, perfil)
+* Alterar senha de um usuário
+* Bloquear/desbloquear usuário (ban/unban)
+* Excluir usuário permanentemente
+
+**Campos do Usuário** (gerenciados pelo Better Auth + plugin admin):
+
+* Nome (obrigatório)
+* Email (obrigatório, único)
+* Senha (mínimo 6 caracteres)
+* Perfil/Role (`admin` ou `user`, padrão `user`)
+* Bloqueado (boolean)
+* Motivo do bloqueio (opcional)
+* Data de expiração do bloqueio (opcional)
+
+**Regras**:
+
+* Somente admins podem acessar a tela de gestão de usuários
+* Um admin não pode excluir a si mesmo
+* O bloqueio impede o usuário de fazer login
+* A criação de usuários usa a API `auth.api.createUser` do Better Auth
+
+**Tecnologia**: Utiliza o plugin `admin` do Better Auth para todas as operações (listUsers, createUser, setRole, setUserPassword, banUser, unbanUser, removeUser).
+
+---
+
 ## Fluxo Geral do Sistema
 
-1. Usuário acessa o sistema (autenticado)
-2. Cadastra itens/serviços no catálogo
-3. Cadastra clientes
-4. Cria ordens de serviço vinculadas a clientes
-5. Atualiza status da OS conforme andamento
-6. Registra entradas/saídas no fluxo de caixa
-7. Gera orçamentos em PDF (selecionando itens do catálogo ou manualmente)
+1. Admin cria usuários no sistema
+2. Usuário acessa o sistema (autenticado)
+3. Cadastra itens/serviços no catálogo
+4. Cadastra clientes
+5. Cria ordens de serviço vinculadas a clientes
+6. Atualiza status da OS conforme andamento
+7. Registra entradas/saídas no fluxo de caixa
+8. Gera orçamentos em PDF (selecionando itens do catálogo ou manualmente)
 
 ---
 
@@ -253,13 +295,15 @@ Relacionamentos:
 * Um orçamento pode existir sem OS
 * Fluxo de caixa pode ou não estar vinculado a uma OS
 * Exclusões devem ser lógicas (soft delete), se possível
+* Somente usuários com role `admin` podem gerenciar outros usuários
+* Um admin não pode excluir a si mesmo
+* Usuários bloqueados (banned) não conseguem acessar o sistema
 
 ---
 
 ## Fora de Escopo (Versão Inicial)
 
 * Controle de estoque
-* Múltiplos usuários com permissões
 * Relatórios financeiros avançados
 * Emissão de nota fiscal
 * Integrações externas
@@ -269,7 +313,7 @@ Relacionamentos:
 ## Possíveis Evoluções Futuras
 
 * Controle de estoque
-* Perfis de usuário e permissões
+* Perfis de usuário granulares (permissões customizadas)
 * Dashboard financeiro
 * Envio de orçamento por WhatsApp/Email
 * Histórico detalhado por cliente

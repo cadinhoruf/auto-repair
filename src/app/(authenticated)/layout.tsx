@@ -12,6 +12,7 @@ const navLinks = [
 	{ href: "/caixa", label: "Caixa" },
 	{ href: "/orcamentos", label: "Orçamentos" },
 	{ href: "/catalogo", label: "Catálogo" },
+	{ href: "/usuarios", label: "Usuários" },
 ];
 
 export default async function AuthenticatedLayout({
