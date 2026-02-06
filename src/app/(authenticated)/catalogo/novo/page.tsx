@@ -1,20 +1,27 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "@/app/_components/ui/button";
 import { FormField, TextareaField } from "@/app/_components/ui/form-field";
 import { PageHeader } from "@/app/_components/ui/page-header";
+import { type ServiceItemFormData, serviceItemSchema } from "@/lib/schemas";
 import { api } from "@/trpc/react";
 
 export default function NovoCatalogoItemPage() {
 	const router = useRouter();
 	const utils = api.useUtils();
 
-	const [name, setName] = useState("");
-	const [description, setDescription] = useState("");
-	const [defaultPrice, setDefaultPrice] = useState("");
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = useForm<ServiceItemFormData>({
+		resolver: zodResolver(serviceItemSchema),
+		defaultValues: { name: "", description: "", defaultPrice: "" },
+	});
 
 	const create = api.serviceItem.create.useMutation({
 		onSuccess: async () => {
@@ -24,35 +31,32 @@ export default function NovoCatalogoItemPage() {
 		},
 	});
 
+	const onSubmit = (data: ServiceItemFormData) => {
+		create.mutate({
+			name: data.name,
+			description: data.description || undefined,
+			defaultPrice: Number(data.defaultPrice) || 0,
+		});
+	};
+
 	return (
 		<div className="flex flex-col gap-6">
 			<PageHeader title="Novo Item / Serviço" />
 
-			<form
-				className="max-w-lg space-y-4"
-				onSubmit={(e) => {
-					e.preventDefault();
-					create.mutate({
-						name,
-						description: description || undefined,
-						defaultPrice: Number(defaultPrice) || 0,
-					});
-				}}
-			>
+			<form className="max-w-lg space-y-4" onSubmit={handleSubmit(onSubmit)}>
 				<FormField
 					label="Nome *"
 					id="name"
 					placeholder="Ex: Troca de óleo"
-					value={name}
-					onChange={(e) => setName(e.target.value)}
-					required
+					registration={register("name")}
+					error={errors.name?.message}
 				/>
 				<TextareaField
 					label="Descrição (opcional)"
 					id="description"
 					placeholder="Detalhes adicionais sobre o item ou serviço"
-					value={description}
-					onChange={(e) => setDescription(e.target.value)}
+					registration={register("description")}
+					error={errors.description?.message}
 				/>
 				<FormField
 					label="Preço padrão (R$)"
@@ -61,8 +65,8 @@ export default function NovoCatalogoItemPage() {
 					step="0.01"
 					min="0"
 					placeholder="0.00"
-					value={defaultPrice}
-					onChange={(e) => setDefaultPrice(e.target.value)}
+					registration={register("defaultPrice")}
+					error={errors.defaultPrice?.message}
 				/>
 
 				{create.error ? <p className="text-sm text-red-600">{create.error.message}</p> : null}

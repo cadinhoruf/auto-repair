@@ -6,9 +6,11 @@ import { Button, LinkButton } from "@/app/_components/ui/button";
 import { EmptyState } from "@/app/_components/ui/empty-state";
 import { PageHeader } from "@/app/_components/ui/page-header";
 import { api } from "@/trpc/react";
+import { authClient } from "@/lib/auth-client";
 
 export default function UsuariosPage() {
 	const { data: users, isLoading, error } = api.user.list.useQuery();
+	const { data: session } = authClient.useSession();
 	const utils = api.useUtils();
 
 	const banMutation = api.user.ban.useMutation({
@@ -44,7 +46,6 @@ export default function UsuariosPage() {
 				title="Usuários"
 				action={<LinkButton href="/usuarios/novo">Novo Usuário</LinkButton>}
 			/>
-
 			{!users || users.length === 0 ? (
 				<EmptyState message="Nenhum usuário encontrado." />
 			) : (

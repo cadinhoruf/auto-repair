@@ -1,11 +1,19 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "@/app/_components/ui/button";
 import { FormField, SelectField } from "@/app/_components/ui/form-field";
 import { PageHeader } from "@/app/_components/ui/page-header";
+import {
+	type EditUserFormData,
+	editUserSchema,
+	type ChangePasswordFormData,
+	changePasswordSchema,
+} from "@/lib/schemas";
 import { api } from "@/trpc/react";
 
 export default function EditarUsuarioPage() {
@@ -16,19 +24,26 @@ export default function EditarUsuarioPage() {
 	const { data: users } = api.user.list.useQuery();
 	const user = users?.find((u) => u.id === id);
 
-	const [name, setName] = useState("");
-	const [email, setEmail] = useState("");
-	const [role, setRole] = useState("user");
-	const [newPassword, setNewPassword] = useState("");
-	const [initialized, setInitialized] = useState(false);
+	// ── Formulário de dados ───────────────────────────────
+	const {
+		register: registerUser,
+		handleSubmit: handleUserSubmit,
+		reset: resetUser,
+		formState: { errors: userErrors },
+	} = useForm<EditUserFormData>({
+		resolver: zodResolver(editUserSchema),
+		defaultValues: { name: "", email: "", role: "user" },
+	});
 
-	// Preenche os campos quando os dados carregam
-	if (user && !initialized) {
-		setName(user.name);
-		setEmail(user.email);
-		setRole(user.role ?? "user");
-		setInitialized(true);
-	}
+	useEffect(() => {
+		if (user) {
+			resetUser({
+				name: user.name,
+				email: user.email,
+				role: (user.role as "user" | "admin") ?? "user",
+			});
+		}
+	}, [user, resetUser]);
 
 	const update = api.user.update.useMutation({
 		onSuccess: async () => {
@@ -37,12 +52,31 @@ export default function EditarUsuarioPage() {
 		},
 	});
 
+	const onUserSubmit = (data: EditUserFormData) => {
+		update.mutate({ userId: id, ...data });
+	};
+
+	// ── Formulário de senha ───────────────────────────────
+	const {
+		register: registerPwd,
+		handleSubmit: handlePwdSubmit,
+		reset: resetPwd,
+		formState: { errors: pwdErrors },
+	} = useForm<ChangePasswordFormData>({
+		resolver: zodResolver(changePasswordSchema),
+		defaultValues: { newPassword: "" },
+	});
+
 	const setPasswordMutation = api.user.setPassword.useMutation({
 		onSuccess: () => {
-			setNewPassword("");
+			resetPwd();
 			alert("Senha alterada com sucesso!");
 		},
 	});
+
+	const onPwdSubmit = (data: ChangePasswordFormData) => {
+		setPasswordMutation.mutate({ userId: id, newPassword: data.newPassword });
+	};
 
 	const roleOptions = [
 		{ value: "user", label: "Usuário" },
@@ -59,37 +93,27 @@ export default function EditarUsuarioPage() {
 			{/* Formulário de dados */}
 			<form
 				className="max-w-lg space-y-4"
-				onSubmit={(e) => {
-					e.preventDefault();
-					update.mutate({
-						userId: id,
-						name,
-						email,
-						role: role as "user" | "admin",
-					});
-				}}
+				onSubmit={handleUserSubmit(onUserSubmit)}
 			>
 				<FormField
 					label="Nome *"
 					id="name"
-					value={name}
-					onChange={(e) => setName(e.target.value)}
-					required
+					registration={registerUser("name")}
+					error={userErrors.name?.message}
 				/>
 				<FormField
 					label="Email *"
 					id="email"
 					type="email"
-					value={email}
-					onChange={(e) => setEmail(e.target.value)}
-					required
+					registration={registerUser("email")}
+					error={userErrors.email?.message}
 				/>
 				<SelectField
 					label="Perfil"
 					id="role"
 					options={roleOptions}
-					value={role}
-					onChange={(e) => setRole(e.target.value)}
+					registration={registerUser("role")}
+					error={userErrors.role?.message}
 				/>
 
 				{update.error ? (
@@ -113,23 +137,14 @@ export default function EditarUsuarioPage() {
 			{/* Alterar senha */}
 			<section className="max-w-lg rounded-xl border border-gray-200 bg-white p-5">
 				<h2 className="mb-3 font-medium text-sm text-gray-700">Alterar Senha</h2>
-				<form
-					className="space-y-3"
-					onSubmit={(e) => {
-						e.preventDefault();
-						if (newPassword.length < 6) return;
-						setPasswordMutation.mutate({ userId: id, newPassword });
-					}}
-				>
+				<form className="space-y-3" onSubmit={handlePwdSubmit(onPwdSubmit)}>
 					<FormField
 						label="Nova senha"
 						id="newPassword"
 						type="password"
 						placeholder="Mínimo 6 caracteres"
-						value={newPassword}
-						onChange={(e) => setNewPassword(e.target.value)}
-						required
-						min={6}
+						registration={registerPwd("newPassword")}
+						error={pwdErrors.newPassword?.message}
 					/>
 
 					{setPasswordMutation.error ? (
@@ -140,7 +155,7 @@ export default function EditarUsuarioPage() {
 
 					<Button
 						type="submit"
-						disabled={setPasswordMutation.isPending || newPassword.length < 6}
+						disabled={setPasswordMutation.isPending}
 					>
 						{setPasswordMutation.isPending ? "Alterando..." : "Alterar Senha"}
 					</Button>

@@ -1,11 +1,13 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "@/app/_components/ui/button";
 import { FormField, TextareaField, SelectField } from "@/app/_components/ui/form-field";
 import { PageHeader } from "@/app/_components/ui/page-header";
+import { type ServiceOrderFormData, serviceOrderSchema } from "@/lib/schemas";
 import { api } from "@/trpc/react";
 
 export default function NovaOSPage() {
@@ -17,9 +19,18 @@ export default function NovaOSPage() {
 
 	const { data: clients } = api.clients.list.useQuery();
 
-	const [clientId, setClientId] = useState(preselectedClientId);
-	const [problemDescription, setProblemDescription] = useState("");
-	const [estimatedValue, setEstimatedValue] = useState("");
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = useForm<ServiceOrderFormData>({
+		resolver: zodResolver(serviceOrderSchema),
+		defaultValues: {
+			clientId: preselectedClientId,
+			problemDescription: "",
+			estimatedValue: "",
+		},
+	});
 
 	const create = api.serviceOrder.create.useMutation({
 		onSuccess: async () => {
@@ -33,24 +44,22 @@ export default function NovaOSPage() {
 		...(clients?.map((c) => ({ value: c.id, label: c.name })) ?? []),
 	];
 
+	const onSubmit = (data: ServiceOrderFormData) => {
+		create.mutate({
+			clientId: data.clientId,
+			problemDescription: data.problemDescription,
+			estimatedValue: data.estimatedValue ? Number(data.estimatedValue) : undefined,
+		});
+	};
+
 	return (
 		<div className="flex flex-col gap-6">
 			<PageHeader title="Nova Ordem de Serviço" />
 
-			<form
-				className="max-w-lg space-y-4"
-				onSubmit={(e) => {
-					e.preventDefault();
-					create.mutate({
-						clientId,
-						problemDescription,
-						estimatedValue: estimatedValue ? Number(estimatedValue) : undefined,
-					});
-				}}
-			>
-				<SelectField label="Cliente *" id="clientId" options={clientOptions} value={clientId} onChange={(e) => setClientId(e.target.value)} required />
-				<TextareaField label="Descrição do problema *" id="problemDescription" value={problemDescription} onChange={(e) => setProblemDescription(e.target.value)} required />
-				<FormField label="Valor estimado (R$)" id="estimatedValue" type="number" step="0.01" min="0" value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} />
+			<form className="max-w-lg space-y-4" onSubmit={handleSubmit(onSubmit)}>
+				<SelectField label="Cliente *" id="clientId" options={clientOptions} registration={register("clientId")} error={errors.clientId?.message} />
+				<TextareaField label="Descrição do problema *" id="problemDescription" registration={register("problemDescription")} error={errors.problemDescription?.message} />
+				<FormField label="Valor estimado (R$)" id="estimatedValue" type="number" step="0.01" min="0" registration={register("estimatedValue")} error={errors.estimatedValue?.message} />
 
 				{create.error ? <p className="text-sm text-red-600">{create.error.message}</p> : null}
 

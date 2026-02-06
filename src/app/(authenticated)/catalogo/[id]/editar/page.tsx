@@ -1,11 +1,14 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "@/app/_components/ui/button";
 import { FormField, TextareaField } from "@/app/_components/ui/form-field";
 import { PageHeader } from "@/app/_components/ui/page-header";
+import { type ServiceItemFormData, serviceItemSchema } from "@/lib/schemas";
 import { api } from "@/trpc/react";
 
 export default function EditarCatalogoItemPage() {
@@ -15,17 +18,25 @@ export default function EditarCatalogoItemPage() {
 
 	const { data: item, isLoading } = api.serviceItem.getById.useQuery({ id });
 
-	const [name, setName] = useState("");
-	const [description, setDescription] = useState("");
-	const [defaultPrice, setDefaultPrice] = useState("");
+	const {
+		register,
+		handleSubmit,
+		reset,
+		formState: { errors },
+	} = useForm<ServiceItemFormData>({
+		resolver: zodResolver(serviceItemSchema),
+		defaultValues: { name: "", description: "", defaultPrice: "" },
+	});
 
 	useEffect(() => {
 		if (item) {
-			setName(item.name);
-			setDescription(item.description ?? "");
-			setDefaultPrice(String(Number(item.defaultPrice)));
+			reset({
+				name: item.name,
+				description: item.description ?? "",
+				defaultPrice: String(Number(item.defaultPrice)),
+			});
 		}
-	}, [item]);
+	}, [item, reset]);
 
 	const update = api.serviceItem.update.useMutation({
 		onSuccess: async () => {
@@ -35,6 +46,15 @@ export default function EditarCatalogoItemPage() {
 		},
 	});
 
+	const onSubmit = (data: ServiceItemFormData) => {
+		update.mutate({
+			id,
+			name: data.name,
+			description: data.description || undefined,
+			defaultPrice: Number(data.defaultPrice) || 0,
+		});
+	};
+
 	if (isLoading) return <p className="text-sm text-gray-500">Carregando...</p>;
 	if (!item) return <p className="text-sm text-red-600">Item não encontrado.</p>;
 
@@ -42,30 +62,18 @@ export default function EditarCatalogoItemPage() {
 		<div className="flex flex-col gap-6">
 			<PageHeader title="Editar Item / Serviço" />
 
-			<form
-				className="max-w-lg space-y-4"
-				onSubmit={(e) => {
-					e.preventDefault();
-					update.mutate({
-						id,
-						name,
-						description: description || undefined,
-						defaultPrice: Number(defaultPrice) || 0,
-					});
-				}}
-			>
+			<form className="max-w-lg space-y-4" onSubmit={handleSubmit(onSubmit)}>
 				<FormField
 					label="Nome *"
 					id="name"
-					value={name}
-					onChange={(e) => setName(e.target.value)}
-					required
+					registration={register("name")}
+					error={errors.name?.message}
 				/>
 				<TextareaField
 					label="Descrição (opcional)"
 					id="description"
-					value={description}
-					onChange={(e) => setDescription(e.target.value)}
+					registration={register("description")}
+					error={errors.description?.message}
 				/>
 				<FormField
 					label="Preço padrão (R$)"
@@ -73,8 +81,8 @@ export default function EditarCatalogoItemPage() {
 					type="number"
 					step="0.01"
 					min="0"
-					value={defaultPrice}
-					onChange={(e) => setDefaultPrice(e.target.value)}
+					registration={register("defaultPrice")}
+					error={errors.defaultPrice?.message}
 				/>
 
 				{update.error ? <p className="text-sm text-red-600">{update.error.message}</p> : null}

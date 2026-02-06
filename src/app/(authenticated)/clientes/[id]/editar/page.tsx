@@ -1,11 +1,14 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "@/app/_components/ui/button";
 import { FormField, TextareaField } from "@/app/_components/ui/form-field";
 import { PageHeader } from "@/app/_components/ui/page-header";
+import { type ClientFormData, clientSchema } from "@/lib/schemas";
 import { api } from "@/trpc/react";
 
 export default function EditarClientePage() {
@@ -15,21 +18,27 @@ export default function EditarClientePage() {
 
 	const { data: client, isLoading } = api.clients.getById.useQuery({ clientId: id });
 
-	const [name, setName] = useState("");
-	const [phone, setPhone] = useState("");
-	const [email, setEmail] = useState("");
-	const [document, setDocument] = useState("");
-	const [notes, setNotes] = useState("");
+	const {
+		register,
+		handleSubmit,
+		reset,
+		formState: { errors },
+	} = useForm<ClientFormData>({
+		resolver: zodResolver(clientSchema),
+		defaultValues: { name: "", phone: "", email: "", document: "", notes: "" },
+	});
 
 	useEffect(() => {
 		if (client) {
-			setName(client.name);
-			setPhone(client.phone);
-			setEmail(client.email ?? "");
-			setDocument(client.document ?? "");
-			setNotes(client.notes ?? "");
+			reset({
+				name: client.name,
+				phone: client.phone,
+				email: client.email ?? "",
+				document: client.document ?? "",
+				notes: client.notes ?? "",
+			});
 		}
-	}, [client]);
+	}, [client, reset]);
 
 	const update = api.clients.update.useMutation({
 		onSuccess: async () => {
@@ -38,31 +47,29 @@ export default function EditarClientePage() {
 		},
 	});
 
+	const onSubmit = (data: ClientFormData) => {
+		update.mutate({
+			clientId: id,
+			name: data.name,
+			phone: data.phone,
+			email: data.email || null,
+			document: data.document || null,
+			notes: data.notes || null,
+		});
+	};
+
 	if (isLoading) return <p className="text-sm text-gray-500">Carregando...</p>;
 
 	return (
 		<div className="flex flex-col gap-6">
 			<PageHeader title="Editar Cliente" />
 
-			<form
-				className="max-w-lg space-y-4"
-				onSubmit={(e) => {
-					e.preventDefault();
-					update.mutate({
-						clientId: id,
-						name,
-						phone,
-						email: email || null,
-						document: document || null,
-						notes: notes || null,
-					});
-				}}
-			>
-				<FormField label="Nome *" id="name" value={name} onChange={(e) => setName(e.target.value)} required />
-				<FormField label="Telefone *" id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} required />
-				<FormField label="Email" id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-				<FormField label="Documento (CPF/CNPJ)" id="document" value={document} onChange={(e) => setDocument(e.target.value)} />
-				<TextareaField label="Observações" id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
+			<form className="max-w-lg space-y-4" onSubmit={handleSubmit(onSubmit)}>
+				<FormField label="Nome *" id="name" registration={register("name")} error={errors.name?.message} />
+				<FormField label="Telefone *" id="phone" registration={register("phone")} error={errors.phone?.message} />
+				<FormField label="Email" id="email" type="email" registration={register("email")} error={errors.email?.message} />
+				<FormField label="Documento (CPF/CNPJ)" id="document" registration={register("document")} error={errors.document?.message} />
+				<TextareaField label="Observações" id="notes" registration={register("notes")} error={errors.notes?.message} />
 
 				{update.error ? <p className="text-sm text-red-600">{update.error.message}</p> : null}
 

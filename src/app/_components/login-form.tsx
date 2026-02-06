@@ -2,8 +2,11 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { authClient } from "@/lib/auth-client";
+import { type LoginFormData, loginSchema } from "@/lib/schemas";
 
 export function LoginForm() {
 	const router = useRouter();
@@ -14,11 +17,44 @@ export function LoginForm() {
 		return fromQuery && fromQuery.startsWith("/") ? fromQuery : "/dashboard";
 	}, [searchParams]);
 
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
-	const [rememberMe, setRememberMe] = useState(true);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	const {
+		register,
+		handleSubmit,
+		formState: { errors, isSubmitting },
+	} = useForm<LoginFormData>({
+		resolver: zodResolver(loginSchema),
+		defaultValues: {
+			email: "",
+			password: "",
+			rememberMe: true,
+		},
+	});
+
+	const onSubmit = async (data: LoginFormData) => {
+		setErrorMessage(null);
+		try {
+			const { error } = await authClient.signIn.email({
+				email: data.email,
+				password: data.password,
+				rememberMe: data.rememberMe,
+				callbackURL,
+			});
+
+			if (error) {
+				setErrorMessage(error.message ?? "E-mail ou senha inválidos.");
+				return;
+			}
+
+			router.push(callbackURL);
+			router.refresh();
+		} catch (err) {
+			setErrorMessage(
+				err instanceof Error ? err.message : "Falha ao realizar login.",
+			);
+		}
+	};
 
 	return (
 		<div className="w-full max-w-md rounded-2xl bg-white/5 p-6 shadow-sm ring-1 ring-white/10">
@@ -31,33 +67,7 @@ export function LoginForm() {
 
 			<form
 				className="mt-6 flex flex-col gap-4"
-				onSubmit={async (e) => {
-					e.preventDefault();
-					setErrorMessage(null);
-					setIsSubmitting(true);
-					try {
-						const { error } = await authClient.signIn.email({
-							email,
-							password,
-							rememberMe,
-							callbackURL,
-						});
-
-						if (error) {
-							setErrorMessage(error.message ?? "E-mail ou senha inválidos.");
-							return;
-						}
-
-						router.push(callbackURL);
-						router.refresh();
-					} catch (err) {
-						setErrorMessage(
-							err instanceof Error ? err.message : "Falha ao realizar login.",
-						);
-					} finally {
-						setIsSubmitting(false);
-					}
-				}}
+				onSubmit={handleSubmit(onSubmit)}
 			>
 				<div className="flex flex-col gap-2">
 					<label className="text-sm font-medium" htmlFor="email">
@@ -69,10 +79,11 @@ export function LoginForm() {
 						placeholder="voce@exemplo.com"
 						autoComplete="email"
 						inputMode="email"
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-						required
+						{...register("email")}
 					/>
+					{errors.email ? (
+						<p className="text-xs text-red-300">{errors.email.message}</p>
+					) : null}
 				</div>
 
 				<div className="flex flex-col gap-2">
@@ -85,18 +96,18 @@ export function LoginForm() {
 						className="h-11 rounded-xl bg-white/10 px-3 text-sm text-white outline-none ring-1 ring-white/10 placeholder:text-white/40 focus:ring-2 focus:ring-white/30"
 						placeholder="••••••••"
 						autoComplete="current-password"
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-						required
+						{...register("password")}
 					/>
+					{errors.password ? (
+						<p className="text-xs text-red-300">{errors.password.message}</p>
+					) : null}
 				</div>
 
 				<label className="flex items-center gap-2 text-sm text-white/80">
 					<input
 						type="checkbox"
 						className="size-4 rounded border-white/20 bg-white/10"
-						checked={rememberMe}
-						onChange={(e) => setRememberMe(e.target.checked)}
+						{...register("rememberMe")}
 					/>
 					Manter conectado
 				</label>

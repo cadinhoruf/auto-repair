@@ -1,22 +1,29 @@
 import Link from "next/link";
 
+import { getSession } from "@/server/better-auth/server";
+
 const cards = [
 	{ href: "/clientes", label: "Clientes", description: "Gerenciar clientes da oficina" },
 	{ href: "/ordens-servico", label: "Ordens de Serviço", description: "Acompanhar serviços" },
 	{ href: "/caixa", label: "Fluxo de Caixa", description: "Entradas e saídas" },
 	{ href: "/orcamentos", label: "Orçamentos", description: "Gerar orçamentos em PDF" },
 	{ href: "/catalogo", label: "Catálogo", description: "Itens e serviços cadastrados" },
-	{ href: "/usuarios", label: "Usuários", description: "Gerenciar usuários do sistema" },
+	{ href: "/usuarios", label: "Usuários", description: "Gerenciar usuários do sistema", adminOnly: true },
 ];
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+	const session = await getSession();
+	const isAdmin = session?.user.role === "admin";
+
+	const visibleCards = cards.filter((c) => !c.adminOnly || isAdmin);
+
 	return (
 		<div>
 			<h1 className="mb-6 font-semibold text-2xl tracking-tight text-gray-900">
 				Painel
 			</h1>
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-				{cards.map((c) => (
+				{visibleCards.map((c) => (
 					<Link
 						key={c.href}
 						href={c.href}

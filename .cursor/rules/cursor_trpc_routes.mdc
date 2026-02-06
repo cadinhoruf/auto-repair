@@ -1,9 +1,7 @@
 ---
 description: Especificação das rotas tRPC do projeto - define exatamente quais routers e procedures devem ser criados
-globs: src/server/api/routers/*.ts
 alwaysApply: false
 ---
-
 # Rotas tRPC — Especificação Completa
 
 > **Implemente somente o que está neste arquivo.** Não crie rotas extras.

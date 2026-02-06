@@ -12,7 +12,7 @@ const navLinks = [
 	{ href: "/caixa", label: "Caixa" },
 	{ href: "/orcamentos", label: "Orçamentos" },
 	{ href: "/catalogo", label: "Catálogo" },
-	{ href: "/usuarios", label: "Usuários" },
+	{ href: "/usuarios", label: "Usuários", adminOnly: true },
 ];
 
 export default async function AuthenticatedLayout({
@@ -22,6 +22,9 @@ export default async function AuthenticatedLayout({
 }) {
 	const session = await getSession();
 	if (!session) redirect("/");
+
+	const isAdmin = session.user.role === "admin";
+	const visibleLinks = navLinks.filter((link) => !link.adminOnly || isAdmin);
 
 	return (
 		<div className="flex min-h-screen bg-gray-50">
@@ -34,7 +37,7 @@ export default async function AuthenticatedLayout({
 				</div>
 
 				<nav className="flex flex-1 flex-col gap-1 p-3">
-					{navLinks.map((link) => (
+					{visibleLinks.map((link) => (
 						<Link
 							key={link.href}
 							href={link.href}

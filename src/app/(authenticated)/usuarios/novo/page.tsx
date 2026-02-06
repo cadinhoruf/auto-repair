@@ -1,21 +1,27 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "@/app/_components/ui/button";
 import { FormField, SelectField } from "@/app/_components/ui/form-field";
 import { PageHeader } from "@/app/_components/ui/page-header";
+import { type CreateUserFormData, createUserSchema } from "@/lib/schemas";
 import { api } from "@/trpc/react";
 
 export default function NovoUsuarioPage() {
 	const router = useRouter();
 	const utils = api.useUtils();
 
-	const [name, setName] = useState("");
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
-	const [role, setRole] = useState("user");
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = useForm<CreateUserFormData>({
+		resolver: zodResolver(createUserSchema),
+		defaultValues: { name: "", email: "", password: "", role: "user" },
+	});
 
 	const create = api.user.create.useMutation({
 		onSuccess: async () => {
@@ -29,55 +35,44 @@ export default function NovoUsuarioPage() {
 		{ value: "admin", label: "Administrador" },
 	];
 
+	const onSubmit = (data: CreateUserFormData) => {
+		create.mutate(data);
+	};
+
 	return (
 		<div className="flex flex-col gap-6">
 			<PageHeader title="Novo Usuário" />
 
-			<form
-				className="max-w-lg space-y-4"
-				onSubmit={(e) => {
-					e.preventDefault();
-					create.mutate({
-						name,
-						email,
-						password,
-						role: role as "user" | "admin",
-					});
-				}}
-			>
+			<form className="max-w-lg space-y-4" onSubmit={handleSubmit(onSubmit)}>
 				<FormField
 					label="Nome *"
 					id="name"
 					placeholder="Nome completo"
-					value={name}
-					onChange={(e) => setName(e.target.value)}
-					required
+					registration={register("name")}
+					error={errors.name?.message}
 				/>
 				<FormField
 					label="Email *"
 					id="email"
 					type="email"
 					placeholder="email@exemplo.com"
-					value={email}
-					onChange={(e) => setEmail(e.target.value)}
-					required
+					registration={register("email")}
+					error={errors.email?.message}
 				/>
 				<FormField
 					label="Senha *"
 					id="password"
 					type="password"
 					placeholder="Mínimo 6 caracteres"
-					value={password}
-					onChange={(e) => setPassword(e.target.value)}
-					required
-					min={6}
+					registration={register("password")}
+					error={errors.password?.message}
 				/>
 				<SelectField
 					label="Perfil"
 					id="role"
 					options={roleOptions}
-					value={role}
-					onChange={(e) => setRole(e.target.value)}
+					registration={register("role")}
+					error={errors.role?.message}
 				/>
 
 				{create.error ? (
