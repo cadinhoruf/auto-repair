@@ -1,0 +1,79 @@
+---
+description: Especificação das rotas tRPC do projeto - define exatamente quais routers e procedures devem ser criados
+globs: src/server/api/routers/*.ts
+alwaysApply: false
+---
+
+# Rotas tRPC — Especificação Completa
+
+> **Implemente somente o que está neste arquivo.** Não crie rotas extras.
+
+## Padrões Gerais
+
+- Todas as rotas usam **protectedProcedure**
+- Não criar rotas de delete na V1
+- Não criar rotas extras "por conveniência"
+- Validações com Zod
+- Retornar apenas os campos necessários para cada caso
+
+## Estrutura de Arquivos
+
+```text
+src/server/api/routers
+ ├─ client.ts
+ ├─ serviceOrder.ts
+ ├─ cashFlow.ts
+ └─ budget.ts
+```
+
+Cada arquivo exporta um router registrado no `appRouter`.
+
+---
+
+## clientRouter (`client.ts`)
+
+| Procedure        | Tipo   | Input                                             | Output / Regras                                    |
+|------------------|--------|---------------------------------------------------|----------------------------------------------------|
+| `client.list`    | query  | nenhum                                            | id, name, phone, email, document                   |
+| `client.getById` | query  | clientId (string)                                 | id, name, phone, email, document, notes, createdAt |
+| `client.create`  | mutation| name, phone, email?, document?, notes?            | Nome e telefone obrigatórios                       |
+| `client.update`  | mutation| clientId, name?, phone?, email?, document?, notes?| —                                                  |
+
+## serviceOrderRouter (`serviceOrder.ts`)
+
+| Procedure                | Tipo   | Input                                                              | Output / Regras                                  |
+|--------------------------|--------|--------------------------------------------------------------------|--------------------------------------------------|
+| `serviceOrder.list`      | query  | status? (OPEN \| IN_PROGRESS \| FINISHED)                         | id, status, openedAt, finalValue, client {id,name} |
+| `serviceOrder.getById`   | query  | serviceOrderId (string)                                           | Todos os campos                                  |
+| `serviceOrder.create`    | mutation| clientId, problemDescription, estimatedValue?                     | Status inicial sempre OPEN                       |
+| `serviceOrder.update`    | mutation| serviceOrderId, servicesPerformed?, partsUsed?, estimatedValue?, finalValue?, status? | Status respeita fluxo do projeto |
+
+## cashFlowRouter (`cashFlow.ts`)
+
+| Procedure          | Tipo   | Input                                                  | Output / Regras                                    |
+|--------------------|--------|--------------------------------------------------------|----------------------------------------------------|
+| `cashFlow.list`    | query  | type? (IN \| OUT)                                      | id, type, description, value, date                 |
+| `cashFlow.create`  | mutation| type (IN\|OUT), description, value (positivo), date?, serviceOrderId? | value sempre positivo; se vinculado a OS, OS deve estar FINISHED |
+
+## budgetRouter (`budget.ts`)
+
+| Procedure         | Tipo   | Input                                              | Output / Regras                                       |
+|-------------------|--------|----------------------------------------------------|-------------------------------------------------------|
+| `budget.list`     | query  | nenhum                                             | id, number, totalValue, issuedAt, client {id, name}   |
+| `budget.getById`  | query  | budgetId (string)                                  | Todos os campos                                       |
+| `budget.create`   | mutation| clientId, itemsDescription, totalValue, serviceOrderId? | number gerado automaticamente; não altera OS nem caixa |
+
+---
+
+## Fora de Escopo (NÃO implementar)
+
+- delete
+- update de orçamento
+- relatórios / exportações
+- permissões / bulk actions
+
+## Em caso de dúvida
+
+- Assuma a solução mais simples
+- Não crie novas rotas nem novos campos
+- Siga estritamente este documento e o CLAUDE.md
