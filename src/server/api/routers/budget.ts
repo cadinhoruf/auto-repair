@@ -15,6 +15,13 @@ async function generateBudgetNumber(db: PrismaClient) {
 	return `${prefix}-${String(count + 1).padStart(4, "0")}`;
 }
 
+const budgetItemSchema = z.object({
+	serviceItemId: z.string().optional(),
+	description: z.string().min(1, "Descrição é obrigatória"),
+	quantity: z.number().int().positive("Quantidade deve ser positiva"),
+	unitPrice: z.number().nonnegative("Preço unitário deve ser >= 0"),
+});
+
 export const budgetRouter = createTRPCRouter({
 	list: protectedProcedure.query(async ({ ctx }) => {
 		return ctx.db.budget.findMany({
@@ -47,8 +54,8 @@ export const budgetRouter = createTRPCRouter({
 		.input(
 			z.object({
 				clientId: z.string(),
-				itemsDescription: z.string().min(1, "Descrição dos itens é obrigatória"),
-				totalValue: z.number().nonnegative(),
+				items: z.array(budgetItemSchema).min(1, "Adicione pelo menos um item"),
+				notes: z.string().optional(),
 				serviceOrderId: z.string().optional(),
 			}),
 		)
@@ -60,14 +67,33 @@ export const budgetRouter = createTRPCRouter({
 
 			const number = await generateBudgetNumber(ctx.db);
 
+			// Calcula totais de cada item e o total geral
+			const itemsWithTotals = input.items.map((item, index) => ({
+				order: index,
+				description: item.description,
+				quantity: item.quantity,
+				unitPrice: item.unitPrice,
+				totalPrice: item.quantity * item.unitPrice,
+				serviceItemId: item.serviceItemId ?? null,
+			}));
+
+			const totalAmount = itemsWithTotals.reduce(
+				(sum, item) => sum + item.totalPrice,
+				0,
+			);
+
 			return ctx.db.budget.create({
 				data: {
 					number,
 					clientId: input.clientId,
-					totalAmount: input.totalValue,
-					notes: input.itemsDescription,
+					totalAmount,
+					notes: input.notes,
 					serviceOrderId: input.serviceOrderId,
+					items: {
+						create: itemsWithTotals,
+					},
 				},
+				include: { items: true },
 			});
 		}),
 });

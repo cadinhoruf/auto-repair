@@ -132,16 +132,46 @@ Este documento serve como **fonte única de verdade funcional e técnica** para 
 **Funcionalidades**:
 
 * Criar orçamento manual ou a partir de uma OS
+* Adicionar itens/serviços com tabela dinâmica
 * Gerar PDF
 * Visualizar antes de gerar
+
+**Tabela de Itens/Serviços** (BudgetItem):
+
+Cada orçamento contém uma lista de itens detalhados:
+
+* Descrição (texto, obrigatório)
+* Quantidade (inteiro, mínimo 1)
+* Preço unitário (decimal, >= 0)
+* Preço total (calculado automaticamente: quantidade × preço unitário)
+* Ordem (posição do item na lista)
+
+O **valor total do orçamento** é calculado automaticamente como a soma dos preços totais dos itens.
+
+Na interface, o usuário pode:
+
+* Selecionar itens do catálogo (preenche descrição e preço automaticamente)
+* Adicionar itens manuais (sem vínculo com catálogo)
+* Adicionar novas linhas de itens
+* Remover linhas (mínimo 1 item obrigatório)
+* Editar descrição, quantidade e preço unitário em tempo real
+* Visualizar o total parcial de cada linha e o total geral
+
+**Campos do Orçamento**:
+
+* Cliente (relacional, obrigatório)
+* Itens/Serviços (lista de BudgetItem, mínimo 1)
+* Observações (texto livre, opcional)
+* Referência a Ordem de Serviço (opcional)
+* Número/identificador (gerado automaticamente: ORC-YYYYMMDD-XXXX)
+* Data de emissão (automática)
 
 **Conteúdo do PDF**:
 
 * Logo da empresa
 * Nome e dados da empresa
 * Dados do cliente
-* Lista de serviços/itens
-* Valores individuais
+* Tabela de itens/serviços com valores individuais
 * Valor total
 * Número/identificador do orçamento
 * Data de emissão
@@ -153,14 +183,44 @@ Este documento serve como **fonte única de verdade funcional e técnica** para 
 
 ---
 
+### 5. Catálogo de Itens / Serviços
+
+**Objetivo**: Manter um cadastro pré-definido de itens e serviços oferecidos pela oficina, facilitando a criação de orçamentos.
+
+**Funcionalidades**:
+
+* Criar item/serviço
+* Editar item/serviço
+* Ativar/desativar item (controle de visibilidade no orçamento)
+* Excluir item (soft delete)
+* Listar itens
+
+**Campos** (ServiceItem):
+
+* Nome (obrigatório)
+* Descrição (opcional)
+* Preço padrão (decimal, >= 0)
+* Ativo (boolean, padrão true)
+
+**Integração com Orçamentos**:
+
+* Na criação de orçamento, cada linha pode ser preenchida a partir do catálogo
+* Ao selecionar um item do catálogo, a descrição e o preço unitário são preenchidos automaticamente
+* O usuário pode ainda editar os valores manualmente após a seleção
+* Também é possível adicionar itens manuais (sem vínculo com catálogo)
+* O BudgetItem possui um campo opcional `serviceItemId` que referencia o item do catálogo
+
+---
+
 ## Fluxo Geral do Sistema
 
 1. Usuário acessa o sistema (autenticado)
-2. Cadastra clientes
-3. Cria ordens de serviço vinculadas a clientes
-4. Atualiza status da OS conforme andamento
-5. Registra entradas/saídas no fluxo de caixa
-6. Gera orçamentos em PDF quando necessário
+2. Cadastra itens/serviços no catálogo
+3. Cadastra clientes
+4. Cria ordens de serviço vinculadas a clientes
+5. Atualiza status da OS conforme andamento
+6. Registra entradas/saídas no fluxo de caixa
+7. Gera orçamentos em PDF (selecionando itens do catálogo ou manualmente)
 
 ---
 
@@ -173,12 +233,16 @@ Entidades principais:
 * ServiceOrder
 * CashFlow
 * Budget
+* BudgetItem
+* ServiceItem
 
 Relacionamentos:
 
 * Client 1:N ServiceOrder
 * ServiceOrder 1:N CashFlow (opcional)
 * Client 1:N Budget
+* Budget 1:N BudgetItem (cascade delete)
+* ServiceItem 1:N BudgetItem (opcional, set null on delete)
 
 ---
 

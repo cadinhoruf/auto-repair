@@ -1,0 +1,210 @@
+---
+alwaysApply: false
+---
+## Fluxo 1 — Clientes
+
+### Tela: Lista de Clientes (`/clientes`)
+
+**Objetivo**: Encontrar e acessar clientes rapidamente.
+
+**Componentes**:
+- Título: "Clientes"
+- Botão primário: "Novo Cliente"
+- Tabela simples
+  - Nome
+  - Telefone
+  - Email
+  - Ação: Ver
+
+**Ações**:
+- Clique em cliente → Detalhe do cliente
+- Clique em "Novo Cliente" → Criar cliente
+
+---
+
+### Tela: Criar / Editar Cliente (`/clientes/novo`, `/clientes/[id]/editar`)
+
+**Campos**:
+- Nome (obrigatório)
+- Telefone (obrigatório)
+- Email
+- Documento
+- Observações
+
+**Ações**:
+- Salvar
+- Cancelar
+
+---
+
+### Tela: Detalhe do Cliente (`/clientes/[id]`)
+
+**Seções**:
+- Dados do cliente
+- Ordens de serviço do cliente
+- Orçamentos do cliente
+
+**Ações**:
+- Criar nova OS
+- Criar novo orçamento
+
+---
+
+## Fluxo 2 — Ordens de Serviço
+
+### Tela: Lista de OS (`/ordens-servico`)
+
+**Componentes**:
+- Título: "Ordens de Serviço"
+- Filtro por status (OPEN | IN_PROGRESS | FINISHED)
+- Tabela:
+  - Cliente
+  - Status
+  - Data de abertura
+  - Valor final
+  - Ação: Ver
+
+---
+
+### Tela: Criar OS (`/ordens-servico/nova`)
+
+**Fluxo**:
+- Selecionar cliente
+- Informar problema
+- Informar valor estimado (opcional)
+
+**Ações**:
+- Criar OS
+- Cancelar
+
+---
+
+### Tela: Detalhe da OS (`/ordens-servico/[id]`)
+
+**Seções**:
+- Dados principais
+- Status atual
+- Serviços realizados
+- Peças utilizadas
+- Valores
+
+**Ações por status**:
+- OPEN:
+  - Iniciar serviço
+  - Finalizar serviço
+- IN_PROGRESS:
+  - Finalizar serviço
+- FINISHED:
+  - Gerar orçamento
+  - Registrar entrada no caixa
+
+---
+
+## Fluxo 3 — Fluxo de Caixa
+
+### Tela: Lista de Caixa (`/caixa`)
+
+**Componentes**:
+- Título: "Fluxo de Caixa"
+- Filtro por tipo (Entrada | Saída)
+- Botão: "Nova Movimentação"
+- Tabela:
+  - Tipo
+  - Descrição
+  - Valor
+  - Data
+
+---
+
+### Tela: Nova Movimentação (`/caixa/nova`)
+
+**Campos**:
+- Tipo (Entrada | Saída)
+- Descrição
+- Valor
+- Data
+- Ordem de Serviço (opcional)
+
+**Ações**:
+- Salvar
+- Cancelar
+
+---
+
+## Fluxo 4 — Orçamentos
+
+### Tela: Lista de Orçamentos (`/orcamentos`)
+
+**Componentes**:
+- Título: "Orçamentos"
+- Botão: "Novo Orçamento"
+- Tabela:
+  - Número
+  - Cliente
+  - Valor total
+  - Data
+  - Ação: Ver
+
+---
+
+### Tela: Criar Orçamento (`/orcamentos/novo`)
+
+**Fluxo**:
+- Selecionar cliente
+- Descrever itens/serviços
+- Informar valor total
+
+**Ações**:
+- Gerar orçamento
+- Cancelar
+
+---
+
+### Tela: Detalhe do Orçamento (`/orcamentos/[id]`)
+
+**Seções**:
+- Dados do orçamento
+- Preview simples do PDF
+
+**Ações**:
+- Gerar PDF
+
+---
+
+## Componentes UI Reutilizáveis
+
+- PageHeader (título + ações)
+- Table
+- Button (primary / secondary)
+- Input
+- Select
+- Textarea
+- StatusBadge
+- Modal (uso mínimo)
+
+---
+
+## Regras de UX Importantes
+
+- Nunca esconder ações principais
+- Nunca exigir mais de um clique para ações críticas
+- Sempre confirmar ações irreversíveis
+- Estados vazios explicativos ("Nenhum cliente cadastrado")
+
+---
+
+## Fora de Escopo de UI (V1)
+
+- Dashboard com gráficos
+- Tema escuro
+- Responsividade avançada
+- Customização visual
+
+---
+
+## Instruções para IA
+
+- Implementar telas exatamente conforme este documento
+- Não adicionar telas extras
+- Não adicionar componentes complexos
+- Priorizar clareza e rapidez de uso

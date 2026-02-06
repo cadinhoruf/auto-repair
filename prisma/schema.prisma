@@ -193,6 +193,9 @@ model BudgetItem {
   budgetId String
   budget   Budget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
 
+  serviceItemId String?
+  serviceItem   ServiceItem? @relation(fields: [serviceItemId], references: [id], onDelete: SetNull)
+
   order       Int     @default(0)
   description String
   quantity    Int     @default(1)
@@ -200,5 +203,25 @@ model BudgetItem {
   totalPrice  Decimal @default(0)
 
   @@index([budgetId])
+  @@index([serviceItemId])
   @@map("budget_item")
+}
+
+model ServiceItem {
+  id String @id @default(cuid())
+
+  name        String
+  description String?
+  defaultPrice Decimal @default(0)
+  active       Boolean @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  budgetItems BudgetItem[]
+
+  @@index([name])
+  @@index([active])
+  @@map("service_item")
 }

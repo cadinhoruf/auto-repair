@@ -1,6 +1,7 @@
 import { budgetRouter } from "@/server/api/routers/budget";
 import { cashFlowRouter } from "@/server/api/routers/cashFlow";
 import { clientRouter } from "@/server/api/routers/client";
+import { serviceItemRouter } from "@/server/api/routers/serviceItem";
 import { serviceOrderRouter } from "@/server/api/routers/serviceOrder";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 
@@ -10,10 +11,11 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-	client: clientRouter,
+	clients: clientRouter,
 	serviceOrder: serviceOrderRouter,
 	cashFlow: cashFlowRouter,
 	budget: budgetRouter,
+	serviceItem: serviceItemRouter,
 });
 
 // export type definition of API
