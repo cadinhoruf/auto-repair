@@ -1,0 +1,37 @@
+# EditorConfig - https://editorconfig.org
+root = true
+
+# Configurações padrão para todos os arquivos
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = tab
+indent_size = 2
+tab_width = 2
+trim_trailing_whitespace = true
+insert_final_newline = true
+max_line_length = 80
+
+# Markdown - preservar espaços finais (quebra de linha)
+[*.md]
+trim_trailing_whitespace = false
+
+# YAML - sempre espaços (padrão da linguagem)
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# JSON / JSONC - tabs (consistente com Biome)
+[*.{json,jsonc}]
+indent_style = tab
+indent_size = 2
+
+# Prisma - espaços (padrão do Prisma)
+[*.prisma]
+indent_style = space
+indent_size = 2
+
+# Arquivos de configuração diversos
+[{.env*,Dockerfile*,docker-compose*}]
+indent_style = space
+indent_size = 2
