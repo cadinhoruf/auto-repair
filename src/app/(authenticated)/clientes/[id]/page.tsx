@@ -7,6 +7,7 @@ import { EmptyState } from "@/app/_components/ui/empty-state";
 import { LinkButton } from "@/app/_components/ui/button";
 import { PageHeader } from "@/app/_components/ui/page-header";
 import { StatusBadge } from "@/app/_components/ui/status-badge";
+import { formatDateBR } from "@/lib/date-br";
 import { api } from "@/trpc/react";
 
 export default function ClienteDetalhePage() {
@@ -32,7 +33,7 @@ export default function ClienteDetalhePage() {
 					<div><dt className="text-gray-500">Telefone</dt><dd className="font-medium text-gray-900">{client.phone}</dd></div>
 					<div><dt className="text-gray-500">Email</dt><dd className="font-medium text-gray-900">{client.email ?? "—"}</dd></div>
 					<div><dt className="text-gray-500">Documento</dt><dd className="font-medium text-gray-900">{client.document ?? "—"}</dd></div>
-					<div><dt className="text-gray-500">Cadastrado em</dt><dd className="font-medium text-gray-900">{new Date(client.createdAt).toLocaleDateString("pt-BR")}</dd></div>
+					<div><dt className="text-gray-500">Cadastrado em</dt><dd className="font-medium text-gray-900">{formatDateBR(client.createdAt)}</dd></div>
 				</dl>
 				{client.notes ? <p className="mt-3 text-sm text-gray-600">{client.notes}</p> : null}
 			</section>
@@ -60,7 +61,7 @@ export default function ClienteDetalhePage() {
 								{clientOrders.map((o) => (
 									<tr key={o.id} className="hover:bg-gray-50">
 										<td className="px-4 py-3"><StatusBadge status={o.status} /></td>
-										<td className="px-4 py-3 text-gray-600">{new Date(o.openedAt).toLocaleDateString("pt-BR")}</td>
+										<td className="px-4 py-3 text-gray-600">{formatDateBR(o.openedAt)}</td>
 										<td className="px-4 py-3 text-gray-600">{o.finalValue ? `R$ ${Number(o.finalValue).toFixed(2)}` : "—"}</td>
 										<td className="px-4 py-3 text-right">
 											<Link href={`/ordens-servico/${o.id}`} className="text-sm font-medium text-blue-600 hover:text-blue-800">Ver</Link>
@@ -97,7 +98,7 @@ export default function ClienteDetalhePage() {
 									<tr key={b.id} className="hover:bg-gray-50">
 										<td className="px-4 py-3 font-medium text-gray-900">{b.number}</td>
 										<td className="px-4 py-3 text-gray-600">R$ {Number(b.totalAmount).toFixed(2)}</td>
-										<td className="px-4 py-3 text-gray-600">{new Date(b.issuedAt).toLocaleDateString("pt-BR")}</td>
+										<td className="px-4 py-3 text-gray-600">{formatDateBR(b.issuedAt)}</td>
 										<td className="px-4 py-3 text-right">
 											<Link href={`/orcamentos/${b.id}`} className="text-sm font-medium text-blue-600 hover:text-blue-800">Ver</Link>
 										</td>

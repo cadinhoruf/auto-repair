@@ -66,13 +66,34 @@ export const serviceItemSchema = z.object({
 export type ServiceItemFormData = z.infer<typeof serviceItemSchema>;
 
 // ── Caixa (movimentação) ──────────────────────────────
-export const cashFlowSchema = z.object({
-	type: z.enum(["IN", "OUT"]),
-	description: z.string().min(1, "Descrição é obrigatória"),
-	value: z.string().min(1, "Valor é obrigatório"),
-	date: z.string().min(1, "Data é obrigatória"),
-	serviceOrderId: z.string().optional(),
-});
+export const cashFlowSchema = z
+	.object({
+		type: z.enum(["IN", "OUT"]),
+		description: z.string().min(1, "Descrição é obrigatória"),
+		value: z.string().min(1, "Valor é obrigatório"),
+		date: z.string().optional(),
+		serviceOrderId: z.string().optional(),
+		installmentsCount: z.coerce.number().int().min(1).max(24).optional(),
+		firstDueDate: z.string().optional(),
+	})
+	.superRefine((data, ctx) => {
+		const count = Math.max(1, data.installmentsCount ?? 1);
+		if (count > 1) {
+			if (!data.firstDueDate?.trim())
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					message: "Informe o primeiro vencimento.",
+					path: ["firstDueDate"],
+				});
+		} else {
+			if (!data.date?.trim())
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					message: "Data à vista é obrigatória.",
+					path: ["date"],
+				});
+		}
+	});
 export type CashFlowFormData = z.infer<typeof cashFlowSchema>;
 
 // ── Orçamento ─────────────────────────────────────────

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button, LinkButton } from "@/app/_components/ui/button";
 import { EmptyState } from "@/app/_components/ui/empty-state";
 import { PageHeader } from "@/app/_components/ui/page-header";
+import { formatDateBR } from "@/lib/date-br";
 import { api } from "@/trpc/react";
 import { authClient } from "@/lib/auth-client";
 
@@ -113,7 +114,7 @@ export default function UsuariosPage() {
 										)}
 									</td>
 									<td className="px-4 py-3 text-gray-500">
-										{new Date(user.createdAt).toLocaleDateString("pt-BR")}
+										{formatDateBR(user.createdAt)}
 									</td>
 									<td className="px-4 py-3">
 										<div className="flex gap-2">

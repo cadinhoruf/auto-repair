@@ -1,6 +1,8 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
+import { formatDateBR } from "./date-br";
+
 interface BudgetItem {
 	description: string;
 	quantity: number;
@@ -27,11 +29,7 @@ function formatCurrency(value: number): string {
 }
 
 function formatDate(date: string | Date): string {
-	return new Date(date).toLocaleDateString("pt-BR", {
-		day: "2-digit",
-		month: "long",
-		year: "numeric",
-	});
+	return formatDateBR(date);
 }
 
 export function generateBudgetPdf(data: BudgetPdfData) {
@@ -176,7 +174,7 @@ export function generateBudgetPdf(data: BudgetPdfData) {
 			doc.setFontSize(7);
 			doc.setFont("helvetica", "normal");
 			doc.text(
-				`${data.number} — Gerado em ${new Date().toLocaleDateString("pt-BR")}`,
+				`${data.number} — Gerado em ${formatDateBR(new Date())}`,
 				pageWidth / 2,
 				pageHeight - 10,
 				{ align: "center" },

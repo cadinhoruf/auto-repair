@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { EmptyState } from "@/app/_components/ui/empty-state";
 import { PageHeader } from "@/app/_components/ui/page-header";
+import { formatDateBR } from "@/lib/date-br";
 import { api } from "@/trpc/react";
 
 export default function OrcamentosPage() {
@@ -35,7 +36,7 @@ export default function OrcamentosPage() {
 									<td className="px-4 py-3 font-medium text-gray-900">{b.number}</td>
 									<td className="px-4 py-3 text-gray-600">{b.client.name}</td>
 									<td className="px-4 py-3 text-gray-600">R$ {Number(b.totalAmount).toFixed(2)}</td>
-									<td className="px-4 py-3 text-gray-600">{new Date(b.issuedAt).toLocaleDateString("pt-BR")}</td>
+									<td className="px-4 py-3 text-gray-600">{formatDateBR(b.issuedAt)}</td>
 									<td className="px-4 py-3 text-right">
 										<Link href={`/orcamentos/${b.id}`} className="text-sm font-medium text-blue-600 hover:text-blue-800">Ver</Link>
 									</td>

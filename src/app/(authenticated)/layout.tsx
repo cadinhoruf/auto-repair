@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { SidebarNav } from "@/app/(authenticated)/_components/sidebar-nav";
 import { auth } from "@/server/better-auth";
 import { getSession } from "@/server/better-auth/server";
 import { db } from "@/server/db";
@@ -10,7 +10,7 @@ const navLinks = [
 	{ href: "/dashboard", label: "Painel" },
 	{ href: "/clientes", label: "Clientes" },
 	{ href: "/ordens-servico", label: "Ordens de Serviço" },
-	{ href: "/caixa", label: "Caixa" },
+	{ href: "/caixa", label: "Fluxo de caixa" },
 	{ href: "/orcamentos", label: "Orçamentos" },
 	{ href: "/catalogo", label: "Catálogo" },
 	{ href: "/usuarios", label: "Usuários", adminOnly: true },
@@ -48,17 +48,7 @@ export default async function AuthenticatedLayout({
 					</span>
 				</div>
 
-				<nav className="flex flex-1 flex-col gap-1 p-3">
-					{visibleLinks.map((link) => (
-						<Link
-							key={link.href}
-							href={link.href}
-							className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-						>
-							{link.label}
-						</Link>
-					))}
-				</nav>
+				<SidebarNav links={visibleLinks} />
 
 				<div className="border-t border-gray-200 p-3">
 					<div className="mb-2 truncate px-3 text-xs text-gray-500">
@@ -81,7 +71,7 @@ export default async function AuthenticatedLayout({
 			</aside>
 
 			{/* Main content */}
-			<main className="flex-1 overflow-y-auto p-6">{children}</main>
+			<main className="flex-1 overflow-y-auto overflow-x-hidden p-6">{children}</main>
 		</div>
 	);
 }

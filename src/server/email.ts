@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 
 import { env } from "@/env";
+import { formatDateBR } from "@/lib/date-br";
 
 const resend = new Resend(env.RESEND_API_KEY);
 
@@ -24,13 +25,7 @@ export async function sendInvitationEmail({
 	expiresAt,
 }: InvitationEmailParams) {
 	const roleName = role === "admin" ? "Administrador" : "Membro";
-	const expiresDate = expiresAt.toLocaleDateString("pt-BR", {
-		day: "2-digit",
-		month: "long",
-		year: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-	});
+	const expiresDate = formatDateBR(expiresAt);
 
 	const { error } = await resend.emails.send({
 		from: FROM_ADDRESS,

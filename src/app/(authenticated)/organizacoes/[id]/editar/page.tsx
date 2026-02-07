@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/app/_components/ui/button";
 import { FormField } from "@/app/_components/ui/form-field";
 import { PageHeader } from "@/app/_components/ui/page-header";
+import { formatDateBR } from "@/lib/date-br";
 import { type OrganizationFormData, organizationSchema } from "@/lib/schemas";
 import { api } from "@/trpc/react";
 
@@ -370,7 +371,7 @@ export default function EditarOrganizacaoPage() {
 												</span>
 											</td>
 											<td className="px-4 py-2 text-gray-500">
-												{new Date(inv.expiresAt).toLocaleDateString("pt-BR")}
+												{formatDateBR(inv.expiresAt)}
 											</td>
 											<td className="px-4 py-2">
 												<div className="flex gap-2">
@@ -425,7 +426,7 @@ export default function EditarOrganizacaoPage() {
 					</p>
 					<p>
 						<span className="font-medium text-gray-700">Criada em:</span>{" "}
-						{new Date(org.createdAt).toLocaleDateString("pt-BR")}
+						{formatDateBR(org.createdAt)}
 					</p>
 					<p>
 						<span className="font-medium text-gray-700">Total de membros:</span>{" "}

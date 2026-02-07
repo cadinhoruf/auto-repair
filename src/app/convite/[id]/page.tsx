@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import { authClient } from "@/lib/auth-client";
+import { formatDateBR } from "@/lib/date-br";
 import { api } from "@/trpc/react";
 
 const registerSchema = z.object({
@@ -184,7 +185,7 @@ export default function ConvitePage() {
 					<h1 className="font-semibold text-lg text-gray-900">Convite expirado</h1>
 					<p className="mt-2 text-sm text-gray-500">
 						Expirado em{" "}
-						{new Date(invitation.expiresAt).toLocaleDateString("pt-BR")}.
+						{formatDateBR(invitation.expiresAt)}.
 						Peça um novo convite ao administrador.
 					</p>
 					<button

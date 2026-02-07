@@ -6,6 +6,7 @@ import { useState } from "react";
 import { EmptyState } from "@/app/_components/ui/empty-state";
 import { PageHeader } from "@/app/_components/ui/page-header";
 import { StatusBadge } from "@/app/_components/ui/status-badge";
+import { formatDateBR } from "@/lib/date-br";
 import { api } from "@/trpc/react";
 
 const statusOptions = [
@@ -65,7 +66,7 @@ export default function OrdensServicoPage() {
 								<tr key={o.id} className="hover:bg-gray-50">
 									<td className="px-4 py-3 font-medium text-gray-900">{o.client.name}</td>
 									<td className="px-4 py-3"><StatusBadge status={o.status} /></td>
-									<td className="px-4 py-3 text-gray-600">{new Date(o.openedAt).toLocaleDateString("pt-BR")}</td>
+									<td className="px-4 py-3 text-gray-600">{formatDateBR(o.openedAt)}</td>
 									<td className="px-4 py-3 text-gray-600">{o.finalValue ? `R$ ${Number(o.finalValue).toFixed(2)}` : "—"}</td>
 									<td className="px-4 py-3 text-right">
 										<Link href={`/ordens-servico/${o.id}`} className="text-sm font-medium text-blue-600 hover:text-blue-800">Ver</Link>

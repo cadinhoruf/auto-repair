@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button, LinkButton } from "@/app/_components/ui/button";
 import { EmptyState } from "@/app/_components/ui/empty-state";
 import { PageHeader } from "@/app/_components/ui/page-header";
+import { formatDateBR } from "@/lib/date-br";
 import { api } from "@/trpc/react";
 
 export default function OrganizacoesPage() {
@@ -77,7 +78,7 @@ export default function OrganizacoesPage() {
 										{org._count.members}
 									</td>
 									<td className="px-4 py-3 text-gray-500">
-										{new Date(org.createdAt).toLocaleDateString("pt-BR")}
+										{formatDateBR(org.createdAt)}
 									</td>
 									<td className="px-4 py-3">
 										<div className="flex gap-2">

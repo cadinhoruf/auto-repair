@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 
 import { Button } from "@/app/_components/ui/button";
 import { PageHeader } from "@/app/_components/ui/page-header";
+import { formatDateBR } from "@/lib/date-br";
 import { openBudgetPdf } from "@/lib/generate-budget-pdf";
 import { buildWhatsAppUrl } from "@/lib/masks";
 import { api } from "@/trpc/react";
@@ -99,7 +100,7 @@ export default function OrcamentoDetalhePage() {
 					<div className="text-right text-sm">
 						<p className="font-medium text-gray-900">{budget.number}</p>
 						<p className="text-gray-500">
-							{new Date(budget.issuedAt).toLocaleDateString("pt-BR")}
+							{formatDateBR(budget.issuedAt)}
 						</p>
 					</div>
 				</div>

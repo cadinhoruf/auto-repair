@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/app/_components/ui/button";
 import { FormField, SelectField } from "@/app/_components/ui/form-field";
 import { PageHeader } from "@/app/_components/ui/page-header";
+import { formatDateBR } from "@/lib/date-br";
 import {
 	type EditUserFormData,
 	editUserSchema,
@@ -171,7 +172,7 @@ export default function EditarUsuarioPage() {
 					</p>
 					<p>
 						<span className="font-medium text-gray-700">Criado em:</span>{" "}
-						{new Date(user.createdAt).toLocaleDateString("pt-BR")}
+						{formatDateBR(user.createdAt)}
 					</p>
 					<p>
 						<span className="font-medium text-gray-700">Status:</span>{" "}

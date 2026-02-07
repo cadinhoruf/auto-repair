@@ -7,6 +7,7 @@ import { Button, LinkButton } from "@/app/_components/ui/button";
 import { FormField, TextareaField } from "@/app/_components/ui/form-field";
 import { PageHeader } from "@/app/_components/ui/page-header";
 import { StatusBadge } from "@/app/_components/ui/status-badge";
+import { formatDateBR } from "@/lib/date-br";
 import { api } from "@/trpc/react";
 
 export default function OSDetalhePage() {
@@ -62,8 +63,8 @@ export default function OSDetalhePage() {
 				<div className="mb-4 flex items-center gap-3">
 					<StatusBadge status={os.status} />
 					<span className="text-xs text-gray-500">
-						Aberta em {new Date(os.openedAt).toLocaleDateString("pt-BR")}
-						{os.closedAt ? ` · Finalizada em ${new Date(os.closedAt).toLocaleDateString("pt-BR")}` : ""}
+						Aberta em {formatDateBR(os.openedAt)}
+						{os.closedAt ? ` · Finalizada em ${formatDateBR(os.closedAt)}` : ""}
 					</span>
 				</div>
 
