@@ -12,6 +12,7 @@ export const cashFlowRouter = createTRPCRouter({
 			return ctx.db.cashFlow.findMany({
 				where: {
 					deletedAt: null,
+					organizationId: ctx.organizationId,
 					...(input?.type ? { type: input.type } : {}),
 				},
 				select: {
@@ -36,10 +37,10 @@ export const cashFlowRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			// Se vinculado a OS, valida que a OS existe e está FINISHED
+			// Se vinculado a OS, valida que a OS existe, pertence à org e está FINISHED
 			if (input.serviceOrderId) {
 				const order = await ctx.db.serviceOrder.findFirstOrThrow({
-					where: { id: input.serviceOrderId, deletedAt: null },
+					where: { id: input.serviceOrderId, deletedAt: null, organizationId: ctx.organizationId },
 				});
 
 				if (order.status !== "FINISHED") {
@@ -58,6 +59,7 @@ export const cashFlowRouter = createTRPCRouter({
 					amount: input.value,
 					date: input.date ?? new Date(),
 					serviceOrderId: input.serviceOrderId,
+					organizationId: ctx.organizationId,
 				},
 			});
 		}),

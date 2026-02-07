@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { headers } from "next/headers";
 import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
@@ -28,7 +27,7 @@ export const userRouter = createTRPCRouter({
 		return result.users;
 	}),
 
-	/** Cria um novo usuário (somente admin). */
+	/** Cria um novo usuário e adiciona como membro da org ativa (somente admin). */
 	create: protectedProcedure
 		.input(
 			z.object({
@@ -49,6 +48,22 @@ export const userRouter = createTRPCRouter({
 				},
 				headers: ctx.headers,
 			});
+
+			// Adiciona o novo usuário como membro da organização ativa do admin
+			const createdUserId =
+				typeof newUser === "object" && newUser !== null && "user" in newUser
+					? (newUser as { user: { id: string } }).user.id
+					: (newUser as { id: string }).id;
+
+			await ctx.db.member.create({
+				data: {
+					id: crypto.randomUUID(),
+					userId: createdUserId,
+					organizationId: ctx.organizationId,
+					role: input.role === "admin" ? "admin" : "member",
+				},
+			});
+
 			return newUser;
 		}),
 

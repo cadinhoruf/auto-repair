@@ -117,6 +117,8 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
  * If you want a query or mutation to ONLY be accessible to logged in users, use this. It verifies
  * the session is valid and guarantees `ctx.session.user` is not null.
  *
+ * Also extracts the active organizationId from the session for multi-tenant filtering.
+ *
  * @see https://trpc.io/docs/procedures
  */
 export const protectedProcedure = t.procedure
@@ -125,10 +127,25 @@ export const protectedProcedure = t.procedure
 		if (!ctx.session?.user) {
 			throw new TRPCError({ code: "UNAUTHORIZED" });
 		}
+
+		const activeOrganizationId =
+			(ctx.session.session as Record<string, unknown>).activeOrganizationId as
+				| string
+				| null
+				| undefined;
+
+		if (!activeOrganizationId) {
+			throw new TRPCError({
+				code: "FORBIDDEN",
+				message:
+					"Nenhuma organização ativa. Entre em contato com o administrador.",
+			});
+		}
+
 		return next({
 			ctx: {
-				// infers the `session` as non-nullable
 				session: { ...ctx.session, user: ctx.session.user },
+				organizationId: activeOrganizationId,
 			},
 		});
 	});

@@ -12,6 +12,7 @@ export const serviceOrderRouter = createTRPCRouter({
 			return ctx.db.serviceOrder.findMany({
 				where: {
 					deletedAt: null,
+					organizationId: ctx.organizationId,
 					...(input?.status ? { status: input.status } : {}),
 				},
 				select: {
@@ -29,7 +30,7 @@ export const serviceOrderRouter = createTRPCRouter({
 		.input(z.object({ serviceOrderId: z.string() }))
 		.query(async ({ ctx, input }) => {
 			return ctx.db.serviceOrder.findFirstOrThrow({
-				where: { id: input.serviceOrderId, deletedAt: null },
+				where: { id: input.serviceOrderId, deletedAt: null, organizationId: ctx.organizationId },
 				include: {
 					client: { select: { id: true, name: true } },
 				},
@@ -45,9 +46,9 @@ export const serviceOrderRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			// Garante que o cliente existe
+			// Garante que o cliente existe e pertence à org
 			await ctx.db.client.findFirstOrThrow({
-				where: { id: input.clientId, deletedAt: null },
+				where: { id: input.clientId, deletedAt: null, organizationId: ctx.organizationId },
 			});
 
 			return ctx.db.serviceOrder.create({
@@ -58,6 +59,7 @@ export const serviceOrderRouter = createTRPCRouter({
 					partsUsed: "",
 					estimatedValue: input.estimatedValue,
 					status: "OPEN",
+					organizationId: ctx.organizationId,
 				},
 			});
 		}),
@@ -77,7 +79,7 @@ export const serviceOrderRouter = createTRPCRouter({
 			const { serviceOrderId, status, ...data } = input;
 
 			const current = await ctx.db.serviceOrder.findFirstOrThrow({
-				where: { id: serviceOrderId, deletedAt: null },
+				where: { id: serviceOrderId, deletedAt: null, organizationId: ctx.organizationId },
 			});
 
 			// Valida transição de status

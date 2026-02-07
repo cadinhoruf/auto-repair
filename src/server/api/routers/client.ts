@@ -5,7 +5,7 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 export const clientRouter = createTRPCRouter({
 	list: protectedProcedure.query(async ({ ctx }) => {
 		return ctx.db.client.findMany({
-			where: { deletedAt: null },
+			where: { deletedAt: null, organizationId: ctx.organizationId },
 			select: {
 				id: true,
 				name: true,
@@ -21,7 +21,7 @@ export const clientRouter = createTRPCRouter({
 		.input(z.object({ clientId: z.string() }))
 		.query(async ({ ctx, input }) => {
 			return ctx.db.client.findFirstOrThrow({
-				where: { id: input.clientId, deletedAt: null },
+				where: { id: input.clientId, deletedAt: null, organizationId: ctx.organizationId },
 				select: {
 					id: true,
 					name: true,
@@ -45,7 +45,12 @@ export const clientRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			return ctx.db.client.create({ data: input });
+			return ctx.db.client.create({
+				data: {
+					...input,
+					organizationId: ctx.organizationId,
+				},
+			});
 		}),
 
 	update: protectedProcedure
@@ -61,6 +66,12 @@ export const clientRouter = createTRPCRouter({
 		)
 		.mutation(async ({ ctx, input }) => {
 			const { clientId, ...data } = input;
+
+			// Garante que o client pertence à org
+			await ctx.db.client.findFirstOrThrow({
+				where: { id: clientId, organizationId: ctx.organizationId },
+			});
+
 			return ctx.db.client.update({
 				where: { id: clientId },
 				data,

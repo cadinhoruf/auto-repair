@@ -6,11 +6,11 @@ import type { PrismaClient } from "../../../../generated/prisma/client";
 /**
  * Gera um número de orçamento sequencial no formato ORC-YYYYMMDD-XXXX.
  */
-async function generateBudgetNumber(db: PrismaClient) {
+async function generateBudgetNumber(db: PrismaClient, organizationId: string) {
 	const today = new Date();
 	const prefix = `ORC-${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}${String(today.getDate()).padStart(2, "0")}`;
 	const count = await db.budget.count({
-		where: { number: { startsWith: prefix } },
+		where: { number: { startsWith: prefix }, organizationId },
 	});
 	return `${prefix}-${String(count + 1).padStart(4, "0")}`;
 }
@@ -25,7 +25,7 @@ const budgetItemSchema = z.object({
 export const budgetRouter = createTRPCRouter({
 	list: protectedProcedure.query(async ({ ctx }) => {
 		return ctx.db.budget.findMany({
-			where: { deletedAt: null },
+			where: { deletedAt: null, organizationId: ctx.organizationId },
 			select: {
 				id: true,
 				number: true,
@@ -41,7 +41,7 @@ export const budgetRouter = createTRPCRouter({
 		.input(z.object({ budgetId: z.string() }))
 		.query(async ({ ctx, input }) => {
 			return ctx.db.budget.findFirstOrThrow({
-				where: { id: input.budgetId, deletedAt: null },
+				where: { id: input.budgetId, deletedAt: null, organizationId: ctx.organizationId },
 				include: {
 					client: { select: { id: true, name: true } },
 					serviceOrder: { select: { id: true, problemDescription: true } },
@@ -60,12 +60,12 @@ export const budgetRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			// Garante que o cliente existe
+			// Garante que o cliente existe e pertence à org
 			await ctx.db.client.findFirstOrThrow({
-				where: { id: input.clientId, deletedAt: null },
+				where: { id: input.clientId, deletedAt: null, organizationId: ctx.organizationId },
 			});
 
-			const number = await generateBudgetNumber(ctx.db);
+			const number = await generateBudgetNumber(ctx.db, ctx.organizationId);
 
 			// Calcula totais de cada item e o total geral
 			const itemsWithTotals = input.items.map((item, index) => ({
@@ -89,6 +89,7 @@ export const budgetRouter = createTRPCRouter({
 					totalAmount,
 					notes: input.notes,
 					serviceOrderId: input.serviceOrderId,
+					organizationId: ctx.organizationId,
 					items: {
 						create: itemsWithTotals,
 					},

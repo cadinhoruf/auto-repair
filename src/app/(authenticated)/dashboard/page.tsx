@@ -9,6 +9,7 @@ const cards = [
 	{ href: "/orcamentos", label: "Orçamentos", description: "Gerar orçamentos em PDF" },
 	{ href: "/catalogo", label: "Catálogo", description: "Itens e serviços cadastrados" },
 	{ href: "/usuarios", label: "Usuários", description: "Gerenciar usuários do sistema", adminOnly: true },
+	{ href: "/organizacoes", label: "Organizações", description: "Gerenciar oficinas e membros", adminOnly: true },
 ];
 
 export default async function DashboardPage() {

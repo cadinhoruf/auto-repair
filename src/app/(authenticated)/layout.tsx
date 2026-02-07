@@ -13,6 +13,7 @@ const navLinks = [
 	{ href: "/orcamentos", label: "Orçamentos" },
 	{ href: "/catalogo", label: "Catálogo" },
 	{ href: "/usuarios", label: "Usuários", adminOnly: true },
+	{ href: "/organizacoes", label: "Organizações", adminOnly: true },
 ];
 
 export default async function AuthenticatedLayout({

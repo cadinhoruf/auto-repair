@@ -128,7 +128,9 @@ export function LoginForm() {
 
 				<p className="text-center text-sm text-white/60">
 					Ainda não tem conta?{" "}
-					<span className="text-white/80">Peça para um admin criar.</span>
+					<span className="text-white/80">
+						Peça um convite ao administrador.
+					</span>
 				</p>
 			</form>
 		</div>

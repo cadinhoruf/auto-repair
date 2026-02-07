@@ -6,7 +6,7 @@ export const serviceItemRouter = createTRPCRouter({
 	/** Lista todos os itens/serviços ativos (não deletados). */
 	list: protectedProcedure.query(async ({ ctx }) => {
 		return ctx.db.serviceItem.findMany({
-			where: { deletedAt: null, active: true },
+			where: { deletedAt: null, active: true, organizationId: ctx.organizationId },
 			orderBy: { name: "asc" },
 		});
 	}),
@@ -14,7 +14,7 @@ export const serviceItemRouter = createTRPCRouter({
 	/** Lista todos (incluindo inativos) para a tela de gestão. */
 	listAll: protectedProcedure.query(async ({ ctx }) => {
 		return ctx.db.serviceItem.findMany({
-			where: { deletedAt: null },
+			where: { deletedAt: null, organizationId: ctx.organizationId },
 			orderBy: { name: "asc" },
 		});
 	}),
@@ -24,7 +24,7 @@ export const serviceItemRouter = createTRPCRouter({
 		.input(z.object({ id: z.string() }))
 		.query(async ({ ctx, input }) => {
 			return ctx.db.serviceItem.findFirstOrThrow({
-				where: { id: input.id, deletedAt: null },
+				where: { id: input.id, deletedAt: null, organizationId: ctx.organizationId },
 			});
 		}),
 
@@ -43,6 +43,7 @@ export const serviceItemRouter = createTRPCRouter({
 					name: input.name,
 					description: input.description,
 					defaultPrice: input.defaultPrice,
+					organizationId: ctx.organizationId,
 				},
 			});
 		}),
@@ -60,6 +61,12 @@ export const serviceItemRouter = createTRPCRouter({
 		)
 		.mutation(async ({ ctx, input }) => {
 			const { id, ...data } = input;
+
+			// Garante que pertence à org
+			await ctx.db.serviceItem.findFirstOrThrow({
+				where: { id, organizationId: ctx.organizationId },
+			});
+
 			return ctx.db.serviceItem.update({
 				where: { id },
 				data,
@@ -70,6 +77,11 @@ export const serviceItemRouter = createTRPCRouter({
 	delete: protectedProcedure
 		.input(z.object({ id: z.string() }))
 		.mutation(async ({ ctx, input }) => {
+			// Garante que pertence à org
+			await ctx.db.serviceItem.findFirstOrThrow({
+				where: { id: input.id, organizationId: ctx.organizationId },
+			});
+
 			return ctx.db.serviceItem.update({
 				where: { id: input.id },
 				data: { deletedAt: new Date() },
