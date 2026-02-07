@@ -14,7 +14,7 @@ export function FormField({ label, error, id, registration, ...props }: FormFiel
 			</label>
 			<input
 				id={id}
-				className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+				className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
 				{...props}
 				{...registration}
 			/>
@@ -38,7 +38,7 @@ export function TextareaField({ label, error, id, registration, ...props }: Text
 			<textarea
 				id={id}
 				rows={3}
-				className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+				className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
 				{...props}
 				{...registration}
 			/>
@@ -62,7 +62,7 @@ export function SelectField({ label, options, id, error, registration, ...props 
 			</label>
 			<select
 				id={id}
-				className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+				className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
 				{...props}
 				{...registration}
 			>

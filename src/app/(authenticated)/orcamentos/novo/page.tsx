@@ -147,7 +147,7 @@ export default function NovoOrcamentoPage() {
 											{/* Seletor do catálogo */}
 											<td className="px-4 py-2">
 												<select
-													className="w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+													className="w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
 													value={item?.serviceItemId ?? ""}
 													onChange={(e) => selectCatalogItem(index, e.target.value)}
 												>
@@ -163,7 +163,7 @@ export default function NovoOrcamentoPage() {
 											{/* Descrição */}
 											<td className="px-4 py-2">
 												<input
-													className="w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+													className="w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
 													placeholder="Ex: Troca de óleo"
 													{...register(`items.${index}.description`)}
 												/>
@@ -177,7 +177,7 @@ export default function NovoOrcamentoPage() {
 												<input
 													type="number"
 													min="1"
-													className="w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+													className="w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
 													{...register(`items.${index}.quantity`, { valueAsNumber: true })}
 												/>
 												{errors.items?.[index]?.quantity?.message ? (
@@ -191,7 +191,7 @@ export default function NovoOrcamentoPage() {
 													type="number"
 													min="0"
 													step="0.01"
-													className="w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+													className="w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
 													{...register(`items.${index}.unitPrice`, { valueAsNumber: true })}
 												/>
 												{errors.items?.[index]?.unitPrice?.message ? (
@@ -238,7 +238,7 @@ export default function NovoOrcamentoPage() {
 					{catalogItems && catalogItems.length === 0 ? (
 						<p className="mt-2 text-xs text-gray-400">
 							Nenhum item cadastrado no catálogo.{" "}
-							<a href="/catalogo/novo" className="text-indigo-500 hover:underline">
+							<a href="/catalogo/novo" className="text-blue-500 hover:underline">
 								Cadastrar itens
 							</a>
 						</p>

@@ -184,7 +184,7 @@ export default function EditarOrganizacaoPage() {
 										</td>
 										<td className="px-4 py-2">
 											<select
-												className="h-8 rounded-md border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+												className="h-8 rounded-md border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
 												value={member.role}
 												onChange={(e) =>
 													updateRole.mutate({
@@ -252,7 +252,7 @@ export default function EditarOrganizacaoPage() {
 						<input
 							id="inviteEmail"
 							type="email"
-							className="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+							className="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
 							placeholder="usuario@exemplo.com"
 							value={inviteEmail}
 							onChange={(e) => setInviteEmail(e.target.value)}
@@ -268,7 +268,7 @@ export default function EditarOrganizacaoPage() {
 						</label>
 						<select
 							id="inviteRole"
-							className="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+							className="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
 							value={inviteRole}
 							onChange={(e) => setInviteRole(e.target.value)}
 						>

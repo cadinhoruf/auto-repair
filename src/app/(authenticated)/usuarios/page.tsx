@@ -67,7 +67,7 @@ export default function UsuariosPage() {
 									<td className="px-4 py-3 font-medium text-gray-900">
 										<Link
 											href={`/usuarios/${user.id}/editar`}
-											className="text-indigo-600 hover:underline"
+											className="text-blue-600 hover:underline"
 										>
 											{user.name}
 										</Link>
@@ -77,7 +77,7 @@ export default function UsuariosPage() {
 										<span
 											className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
 												user.role === "admin"
-													? "bg-indigo-100 text-indigo-700"
+													? "bg-blue-100 text-blue-700"
 													: "bg-gray-100 text-gray-600"
 											}`}
 										>

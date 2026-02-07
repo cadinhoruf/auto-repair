@@ -28,7 +28,7 @@ export default async function DashboardPage() {
 					<Link
 						key={c.href}
 						href={c.href}
-						className="flex flex-col gap-1 rounded-xl border border-gray-200 bg-white p-5 transition hover:border-indigo-300 hover:shadow-sm"
+						className="flex flex-col gap-1 rounded-xl border border-gray-200 bg-white p-5 transition hover:border-blue-300 hover:shadow-sm"
 					>
 						<span className="font-medium text-sm text-gray-900">{c.label}</span>
 						<span className="text-xs text-gray-500">{c.description}</span>

@@ -4,4 +4,17 @@
 	--font-sans:
 		var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
 		"Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+	/* Paleta primária blue */
+	--color-blue-50: #e9f5ff;
+	--color-blue-100: #d7edff;
+	--color-blue-200: #b6dcff;
+	--color-blue-300: #8bc3ff;
+	--color-blue-400: #5d9cff;
+	--color-blue-500: #3874ff;
+	--color-blue-600: #1648ff;
+	--color-blue-700: #0b3af6;
+	--color-blue-800: #0d34c6;
+	--color-blue-900: #15359a;
+	--color-blue-950: #0d1e59;
 }

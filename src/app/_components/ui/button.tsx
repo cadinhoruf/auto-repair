@@ -3,7 +3,7 @@ import Link from "next/link";
 type Variant = "primary" | "secondary" | "danger";
 
 const variants: Record<Variant, string> = {
-	primary: "bg-indigo-600 text-white hover:bg-indigo-700",
+	primary: "bg-blue-600 text-white hover:bg-blue-700",
 	secondary: "bg-white text-gray-700 ring-1 ring-gray-300 hover:bg-gray-50",
 	danger: "bg-red-600 text-white hover:bg-red-700",
 };

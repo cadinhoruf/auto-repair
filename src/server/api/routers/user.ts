@@ -55,14 +55,23 @@ export const userRouter = createTRPCRouter({
 					? (newUser as { user: { id: string } }).user.id
 					: (newUser as { id: string }).id;
 
-			await ctx.db.member.create({
-				data: {
-					id: crypto.randomUUID(),
+			const alreadyMember = await ctx.db.member.findFirst({
+				where: {
 					userId: createdUserId,
 					organizationId: ctx.organizationId,
-					role: input.role === "admin" ? "admin" : "member",
 				},
 			});
+
+			if (!alreadyMember) {
+				await ctx.db.member.create({
+					data: {
+						id: crypto.randomUUID(),
+						userId: createdUserId,
+						organizationId: ctx.organizationId,
+						role: input.role === "admin" ? "admin" : "member",
+					},
+				});
+			}
 
 			return newUser;
 		}),

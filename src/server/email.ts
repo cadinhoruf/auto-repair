@@ -50,7 +50,7 @@ export async function sendInvitationEmail({
         <table width="480" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
           <!-- Header -->
           <tr>
-            <td style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:32px 40px;text-align:center;">
+            <td style="background:linear-gradient(135deg,#1648ff,#0b3af6);padding:32px 40px;text-align:center;">
               <h1 style="margin:0;color:#ffffff;font-size:20px;font-weight:600;letter-spacing:-0.02em;">Auto Repair</h1>
               <p style="margin:8px 0 0;color:rgba(255,255,255,0.8);font-size:13px;">Convite para organização</p>
             </td>
@@ -70,7 +70,7 @@ export async function sendInvitationEmail({
                 <tr>
                   <td align="center" style="padding:8px 0 24px;">
                     <a href="${inviteLink}"
-                       style="display:inline-block;background-color:#4f46e5;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:10px;font-size:15px;font-weight:600;letter-spacing:-0.01em;">
+                       style="display:inline-block;background-color:#1648ff;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:10px;font-size:15px;font-weight:600;letter-spacing:-0.01em;">
                       Aceitar Convite
                     </a>
                   </td>
@@ -96,7 +96,7 @@ export async function sendInvitationEmail({
                 Se você não esperava este convite, pode ignorar este email com segurança.
               </p>
               <p style="margin:12px 0 0;color:#9ca3af;font-size:11px;line-height:1.5;word-break:break-all;">
-                Link direto: <a href="${inviteLink}" style="color:#6366f1;">${inviteLink}</a>
+                Link direto: <a href="${inviteLink}" style="color:#1648ff;">${inviteLink}</a>
               </p>
             </td>
           </tr>

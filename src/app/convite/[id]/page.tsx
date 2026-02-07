@@ -110,7 +110,7 @@ export default function ConvitePage() {
 	// ── Estados de carregamento/erro ───────────────────────
 	if (isLoading) {
 		return (
-			<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] px-4 py-16 text-white">
+			<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-blue-800 to-blue-950 px-4 py-16 text-white">
 				<p className="text-sm text-white/70">Carregando convite...</p>
 			</main>
 		);
@@ -118,7 +118,7 @@ export default function ConvitePage() {
 
 	if (error || !invitation) {
 		return (
-			<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] px-4 py-16 text-white">
+			<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-blue-800 to-blue-950 px-4 py-16 text-white">
 				<div className="w-full max-w-md rounded-2xl bg-white/5 p-6 shadow-sm ring-1 ring-white/10 text-center">
 					<h1 className="font-semibold text-xl">Convite Inválido</h1>
 					<p className="mt-2 text-sm text-white/70">
@@ -137,7 +137,7 @@ export default function ConvitePage() {
 
 	if (invitation.status !== "pending") {
 		return (
-			<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] px-4 py-16 text-white">
+			<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-blue-800 to-blue-950 px-4 py-16 text-white">
 				<div className="w-full max-w-md rounded-2xl bg-white/5 p-6 shadow-sm ring-1 ring-white/10 text-center">
 					<h1 className="font-semibold text-xl">Convite Expirado</h1>
 					<p className="mt-2 text-sm text-white/70">
@@ -163,7 +163,7 @@ export default function ConvitePage() {
 	const isExpired = new Date(invitation.expiresAt) < new Date();
 	if (isExpired) {
 		return (
-			<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] px-4 py-16 text-white">
+			<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-blue-800 to-blue-950 px-4 py-16 text-white">
 				<div className="w-full max-w-md rounded-2xl bg-white/5 p-6 shadow-sm ring-1 ring-white/10 text-center">
 					<h1 className="font-semibold text-xl">Convite Expirado</h1>
 					<p className="mt-2 text-sm text-white/70">
@@ -183,7 +183,7 @@ export default function ConvitePage() {
 	}
 
 	return (
-		<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] px-4 py-16 text-white">
+		<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-blue-800 to-blue-950 px-4 py-16 text-white">
 			<div className="w-full max-w-md">
 				{/* Header */}
 				<div className="mb-6 text-center">

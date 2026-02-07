@@ -63,7 +63,7 @@ export default function ClienteDetalhePage() {
 										<td className="px-4 py-3 text-gray-600">{new Date(o.openedAt).toLocaleDateString("pt-BR")}</td>
 										<td className="px-4 py-3 text-gray-600">{o.finalValue ? `R$ ${Number(o.finalValue).toFixed(2)}` : "—"}</td>
 										<td className="px-4 py-3 text-right">
-											<Link href={`/ordens-servico/${o.id}`} className="text-sm font-medium text-indigo-600 hover:text-indigo-800">Ver</Link>
+											<Link href={`/ordens-servico/${o.id}`} className="text-sm font-medium text-blue-600 hover:text-blue-800">Ver</Link>
 										</td>
 									</tr>
 								))}
@@ -99,7 +99,7 @@ export default function ClienteDetalhePage() {
 										<td className="px-4 py-3 text-gray-600">R$ {Number(b.totalAmount).toFixed(2)}</td>
 										<td className="px-4 py-3 text-gray-600">{new Date(b.issuedAt).toLocaleDateString("pt-BR")}</td>
 										<td className="px-4 py-3 text-right">
-											<Link href={`/orcamentos/${b.id}`} className="text-sm font-medium text-indigo-600 hover:text-indigo-800">Ver</Link>
+											<Link href={`/orcamentos/${b.id}`} className="text-sm font-medium text-blue-600 hover:text-blue-800">Ver</Link>
 										</td>
 									</tr>
 								))}

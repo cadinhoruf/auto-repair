@@ -35,7 +35,7 @@ export default function OrdensServicoPage() {
 						onClick={() => setStatusFilter(opt.value)}
 						className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
 							statusFilter === opt.value
-								? "bg-indigo-100 text-indigo-700"
+								? "bg-blue-100 text-blue-700"
 								: "bg-gray-100 text-gray-600 hover:bg-gray-200"
 						}`}
 					>
@@ -68,7 +68,7 @@ export default function OrdensServicoPage() {
 									<td className="px-4 py-3 text-gray-600">{new Date(o.openedAt).toLocaleDateString("pt-BR")}</td>
 									<td className="px-4 py-3 text-gray-600">{o.finalValue ? `R$ ${Number(o.finalValue).toFixed(2)}` : "—"}</td>
 									<td className="px-4 py-3 text-right">
-										<Link href={`/ordens-servico/${o.id}`} className="text-sm font-medium text-indigo-600 hover:text-indigo-800">Ver</Link>
+										<Link href={`/ordens-servico/${o.id}`} className="text-sm font-medium text-blue-600 hover:text-blue-800">Ver</Link>
 									</td>
 								</tr>
 							))}

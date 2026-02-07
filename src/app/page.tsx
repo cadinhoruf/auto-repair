@@ -9,7 +9,7 @@ export default async function LoginPage() {
   if (session) redirect("/dashboard");
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] px-4 py-16 text-white">
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-blue-800 to-blue-950 px-4 py-16 text-white">
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
           <div className="text-sm font-semibold tracking-wide text-white/80">

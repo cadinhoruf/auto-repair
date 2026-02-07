@@ -43,8 +43,9 @@ export const budgetRouter = createTRPCRouter({
 			return ctx.db.budget.findFirstOrThrow({
 				where: { id: input.budgetId, deletedAt: null, organizationId: ctx.organizationId },
 				include: {
-					client: { select: { id: true, name: true } },
+					client: { select: { id: true, name: true, phone: true, email: true, document: true } },
 					serviceOrder: { select: { id: true, problemDescription: true } },
+					organization: { select: { name: true } },
 					items: { orderBy: { order: "asc" } },
 				},
 			});

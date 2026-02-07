@@ -63,7 +63,7 @@ export default function OrganizacoesPage() {
 									<td className="px-4 py-3 font-medium text-gray-900">
 										<Link
 											href={`/organizacoes/${org.id}/editar`}
-											className="text-indigo-600 hover:underline"
+											className="text-blue-600 hover:underline"
 										>
 											{org.name}
 										</Link>

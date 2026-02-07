@@ -33,7 +33,7 @@ export default function CaixaPage() {
 						onClick={() => setTypeFilter(opt.value)}
 						className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
 							typeFilter === opt.value
-								? "bg-indigo-100 text-indigo-700"
+								? "bg-blue-100 text-blue-700"
 								: "bg-gray-100 text-gray-600 hover:bg-gray-200"
 						}`}
 					>

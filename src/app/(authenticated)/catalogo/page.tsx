@@ -52,7 +52,7 @@ export default function CatalogoPage() {
 							{items.map((item) => (
 								<tr key={item.id} className={!item.active ? "opacity-50" : ""}>
 									<td className="px-4 py-3 font-medium text-gray-900">
-										<Link href={`/catalogo/${item.id}/editar`} className="text-indigo-600 hover:underline">
+										<Link href={`/catalogo/${item.id}/editar`} className="text-blue-600 hover:underline">
 											{item.name}
 										</Link>
 									</td>
