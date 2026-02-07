@@ -98,9 +98,42 @@ export default function EditarOrganizacaoPage() {
 	}
 
 	async function copyLink(invitationId: string) {
-		await navigator.clipboard.writeText(getInviteLink(invitationId));
-		setCopiedId(invitationId);
-		setTimeout(() => setCopiedId(null), 2000);
+		const url = getInviteLink(invitationId);
+
+		try {
+			if (navigator.clipboard?.writeText) {
+				await navigator.clipboard.writeText(url);
+				setCopiedId(invitationId);
+				setTimeout(() => setCopiedId(null), 2000);
+				return;
+			}
+		} catch {
+			// clipboard API falhou (ex.: contexto não seguro em produção)
+		}
+
+		// Fallback: input temporário + execCommand (funciona em HTTP e contextos restritos)
+		const input = document.createElement("input");
+		input.value = url;
+		input.setAttribute("readonly", "");
+		input.style.position = "absolute";
+		input.style.left = "-9999px";
+		document.body.appendChild(input);
+		input.select();
+		input.setSelectionRange(0, url.length);
+		try {
+			const ok = document.execCommand("copy");
+			document.body.removeChild(input);
+			if (ok) {
+				setCopiedId(invitationId);
+				setTimeout(() => setCopiedId(null), 2000);
+				return;
+			}
+		} catch {
+			document.body.removeChild(input);
+		}
+
+		// Último recurso: exibir o link para o usuário copiar manualmente
+		window.prompt("Copie o link do convite:", url);
 	}
 
 	if (isLoading) return <p className="text-sm text-gray-500">Carregando...</p>;
