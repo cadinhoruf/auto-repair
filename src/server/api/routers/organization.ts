@@ -2,6 +2,8 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { env } from "@/env";
+import { sendInvitationEmail } from "@/server/email";
 
 /**
  * Middleware que garante que o usuário logado é admin.
@@ -296,6 +298,14 @@ export const organizationRouter = createTRPCRouter({
 				});
 			}
 
+			// Busca nome da organização para o email
+			const org = await ctx.db.organization.findUniqueOrThrow({
+				where: { id: input.organizationId },
+				select: { name: true },
+			});
+
+			const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 48); // 48h
+
 			// Cria o convite diretamente (bypass Better Auth membership check)
 			const invitation = await ctx.db.invitation.create({
 				data: {
@@ -305,9 +315,25 @@ export const organizationRouter = createTRPCRouter({
 					organizationId: input.organizationId,
 					inviterId: ctx.session.user.id,
 					status: "pending",
-					expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 48), // 48h
+					expiresAt,
 				},
 			});
+
+			// Envia email de convite via Resend
+			const inviteLink = `${env.BETTER_AUTH_BASE_URL}/convite/${invitation.id}`;
+			try {
+				await sendInvitationEmail({
+					to: input.email,
+					inviterName: ctx.session.user.name ?? ctx.session.user.email ?? "Admin",
+					organizationName: org.name,
+					role: input.role,
+					inviteLink,
+					expiresAt,
+				});
+			} catch (emailError) {
+				console.error("[INVITE] Email não enviado, mas convite criado:", emailError);
+				// Não falha a operação — o convite foi criado e o link pode ser copiado
+			}
 
 			return invitation;
 		}),

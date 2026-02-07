@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/app/_components/ui/button";
 import { FormField, TextareaField } from "@/app/_components/ui/form-field";
 import { PageHeader } from "@/app/_components/ui/page-header";
+import { formatPhone } from "@/lib/masks";
 import { type ClientFormData, clientSchema } from "@/lib/schemas";
 import { api } from "@/trpc/react";
 
@@ -66,7 +67,7 @@ export default function EditarClientePage() {
 
 			<form className="max-w-lg space-y-4" onSubmit={handleSubmit(onSubmit)}>
 				<FormField label="Nome *" id="name" registration={register("name")} error={errors.name?.message} />
-				<FormField label="Telefone *" id="phone" registration={register("phone")} error={errors.phone?.message} />
+				<FormField label="Telefone *" id="phone" placeholder="(00) 00000-0000" registration={register("phone", { onChange: (e: React.ChangeEvent<HTMLInputElement>) => { e.target.value = formatPhone(e.target.value); } })} error={errors.phone?.message} />
 				<FormField label="Email" id="email" type="email" registration={register("email")} error={errors.email?.message} />
 				<FormField label="Documento (CPF/CNPJ)" id="document" registration={register("document")} error={errors.document?.message} />
 				<TextareaField label="Observações" id="notes" registration={register("notes")} error={errors.notes?.message} />
