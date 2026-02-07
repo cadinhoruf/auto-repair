@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // ── Login ──────────────────────────────────────────────
 export const loginSchema = z.object({
-	email: z.string().min(1, "E-mail é obrigatório").email("E-mail inválido"),
+	username: z.string().min(1, "Usuário é obrigatório"),
 	password: z.string().min(1, "Senha é obrigatória"),
 	rememberMe: z.boolean(),
 });
@@ -29,6 +29,14 @@ export type ServiceOrderFormData = z.infer<typeof serviceOrderSchema>;
 // ── Usuário (criar) ───────────────────────────────────
 export const createUserSchema = z.object({
 	name: z.string().min(1, "Nome é obrigatório"),
+	username: z
+		.string()
+		.min(3, "Usuário deve ter pelo menos 3 caracteres")
+		.max(30, "Usuário deve ter no máximo 30 caracteres")
+		.regex(
+			/^[a-zA-Z0-9_.]+$/,
+			"Usuário deve conter apenas letras, números, pontos e underscores",
+		),
 	email: z.string().min(1, "E-mail é obrigatório").email("E-mail inválido"),
 	password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
 	role: z.enum(["user", "admin"]),

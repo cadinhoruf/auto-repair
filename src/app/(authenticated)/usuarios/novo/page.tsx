@@ -20,7 +20,7 @@ export default function NovoUsuarioPage() {
 		formState: { errors },
 	} = useForm<CreateUserFormData>({
 		resolver: zodResolver(createUserSchema),
-		defaultValues: { name: "", email: "", password: "", role: "user" },
+		defaultValues: { name: "", username: "", email: "", password: "", role: "user" },
 	});
 
 	const create = api.user.create.useMutation({
@@ -50,6 +50,13 @@ export default function NovoUsuarioPage() {
 					placeholder="Nome completo"
 					registration={register("name")}
 					error={errors.name?.message}
+				/>
+				<FormField
+					label="Usuário *"
+					id="username"
+					placeholder="nome.sobrenome"
+					registration={register("username")}
+					error={errors.username?.message}
 				/>
 				<FormField
 					label="Email *"

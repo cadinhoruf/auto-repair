@@ -5,12 +5,13 @@
  * - ADMIN_EMAIL="admin@exemplo.com"
  * - ADMIN_PASSWORD="uma-senha-forte"
  * - ADMIN_NAME="Admin" (opcional)
+ * - ADMIN_USERNAME="admin" (opcional, default: "admin")
  * - ADMIN_VERIFY_EMAIL="true" (opcional, default: true)
  * - ORG_NAME="Minha Oficina" (opcional, default: "Oficina")
  * - ORG_SLUG="minha-oficina" (opcional, gerado a partir do nome)
  *
  * Uso via args:
- * bun scripts/initialize-admin-user.ts -- --email admin@exemplo.com --password "senha" --name "Admin" --org-name "Minha Oficina"
+ * bun scripts/initialize-admin-user.ts -- --email admin@exemplo.com --password "senha" --name "Admin" --username "admin" --org-name "Minha Oficina"
  */
 
 import "dotenv/config";
@@ -44,6 +45,7 @@ async function initializeAdminUser() {
 	const email = getArg("--email") ?? process.env.ADMIN_EMAIL;
 	const password = getArg("--password") ?? process.env.ADMIN_PASSWORD;
 	const name = getArg("--name") ?? process.env.ADMIN_NAME ?? "Admin";
+	const username = getArg("--username") ?? process.env.ADMIN_USERNAME ?? "admin";
 	const verifyEmail = parseBoolean(
 		getArg("--verify-email") ?? process.env.ADMIN_VERIFY_EMAIL,
 		true,
@@ -78,7 +80,7 @@ async function initializeAdminUser() {
 		console.log(`Criando usuário admin: ${email}...`);
 
 		const result = await auth.api.signUpEmail({
-			body: { email, password, name },
+			body: { email, password, name, username },
 		});
 
 		if (!result?.user?.id) {

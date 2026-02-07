@@ -26,7 +26,7 @@ export function LoginForm() {
 	} = useForm<LoginFormData>({
 		resolver: zodResolver(loginSchema),
 		defaultValues: {
-			email: "",
+			username: "",
 			password: "",
 			rememberMe: true,
 		},
@@ -35,15 +35,15 @@ export function LoginForm() {
 	const onSubmit = async (data: LoginFormData) => {
 		setErrorMessage(null);
 		try {
-			const { error } = await authClient.signIn.email({
-				email: data.email,
+			const { error } = await authClient.signIn.username({
+				username: data.username,
 				password: data.password,
-				rememberMe: data.rememberMe,
-				callbackURL,
 			});
 
 			if (error) {
-				setErrorMessage(error.message ?? "E-mail ou senha inválidos.");
+				setErrorMessage(
+					error.message ?? "Usuário ou senha inválidos.",
+				);
 				return;
 			}
 
@@ -61,7 +61,7 @@ export function LoginForm() {
 			<div className="flex flex-col gap-2">
 				<h1 className="font-semibold text-2xl tracking-tight">Entrar</h1>
 				<p className="text-sm text-white/70">
-					Acesse o sistema usando seu e-mail e senha.
+					Acesse o sistema usando seu usuário e senha.
 				</p>
 			</div>
 
@@ -70,19 +70,18 @@ export function LoginForm() {
 				onSubmit={handleSubmit(onSubmit)}
 			>
 				<div className="flex flex-col gap-2">
-					<label className="text-sm font-medium" htmlFor="email">
-						E-mail
+					<label className="text-sm font-medium" htmlFor="username">
+						Usuário
 					</label>
 					<input
-						id="email"
+						id="username"
 						className="h-11 rounded-xl bg-white/10 px-3 text-sm text-white outline-none ring-1 ring-white/10 placeholder:text-white/40 focus:ring-2 focus:ring-white/30"
-						placeholder="voce@exemplo.com"
-						autoComplete="email"
-						inputMode="email"
-						{...register("email")}
+						placeholder="seu.usuario"
+						autoComplete="username"
+						{...register("username")}
 					/>
-					{errors.email ? (
-						<p className="text-xs text-red-300">{errors.email.message}</p>
+					{errors.username ? (
+						<p className="text-xs text-red-300">{errors.username.message}</p>
 					) : null}
 				</div>
 

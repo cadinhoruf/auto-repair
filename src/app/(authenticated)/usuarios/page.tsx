@@ -55,6 +55,7 @@ export default function UsuariosPage() {
 							<tr>
 								<th className="px-4 py-3 font-medium text-gray-600">Nome</th>
 								<th className="px-4 py-3 font-medium text-gray-600">Email</th>
+								<th className="px-4 py-3 font-medium text-gray-600">Organização</th>
 								<th className="px-4 py-3 font-medium text-gray-600">Perfil</th>
 								<th className="px-4 py-3 font-medium text-gray-600">Status</th>
 								<th className="px-4 py-3 font-medium text-gray-600">Criado em</th>
@@ -73,6 +74,22 @@ export default function UsuariosPage() {
 										</Link>
 									</td>
 									<td className="px-4 py-3 text-gray-600">{user.email}</td>
+									<td className="px-4 py-3 text-gray-600">
+										{user.organizations && user.organizations.length > 0 ? (
+											<div className="flex flex-wrap gap-1">
+												{user.organizations.map((org) => (
+													<span
+														key={org.organization.id}
+														className="inline-block rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700"
+													>
+														{org.organization.name}
+													</span>
+												))}
+											</div>
+										) : (
+											<span className="text-xs text-gray-400">Nenhuma</span>
+										)}
+									</td>
 									<td className="px-4 py-3">
 										<span
 											className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${

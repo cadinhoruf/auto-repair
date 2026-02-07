@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/server/better-auth";
 import { getSession } from "@/server/better-auth/server";
+import { db } from "@/server/db";
 
 const navLinks = [
 	{ href: "/dashboard", label: "Painel" },
@@ -27,13 +28,23 @@ export default async function AuthenticatedLayout({
 	const isAdmin = session.user.role === "admin";
 	const visibleLinks = navLinks.filter((link) => !link.adminOnly || isAdmin);
 
+	// Busca o nome da organização ativa
+	const activeOrgId = (session.session as Record<string, unknown>)
+		.activeOrganizationId as string | null | undefined;
+	const activeOrg = activeOrgId
+		? await db.organization.findUnique({
+				where: { id: activeOrgId },
+				select: { name: true },
+			})
+		: null;
+
 	return (
 		<div className="flex min-h-screen bg-gray-50">
 			{/* Sidebar */}
 			<aside className="flex w-56 shrink-0 flex-col border-r border-gray-200 bg-white">
 				<div className="flex h-14 items-center border-b border-gray-200 px-4">
-					<span className="font-semibold text-sm text-blue-600">
-						Auto Repair
+					<span className="font-semibold text-sm text-blue-600 truncate">
+						{activeOrg?.name ?? "Auto Repair"}
 					</span>
 				</div>
 

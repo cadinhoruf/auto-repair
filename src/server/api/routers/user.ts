@@ -17,14 +17,40 @@ function assertAdmin(role: string | null | undefined) {
 }
 
 export const userRouter = createTRPCRouter({
-	/** Lista todos os usuários (somente admin). */
+	/** Lista todos os usuários com suas organizações (somente admin). */
 	list: protectedProcedure.query(async ({ ctx }) => {
 		assertAdmin(ctx.session.user.role);
 		const result = await auth.api.listUsers({
 			query: { limit: 100, sortBy: "createdAt", sortDirection: "desc" },
 			headers: ctx.headers,
 		});
-		return result.users;
+
+		// Busca as memberships de todos os usuários para enriquecer com dados da organização
+		const userIds = result.users.map((u) => u.id);
+		const memberships = await ctx.db.member.findMany({
+			where: { userId: { in: userIds } },
+			select: {
+				userId: true,
+				role: true,
+				organization: { select: { id: true, name: true } },
+			},
+		});
+
+		// Agrupa memberships por userId
+		const membershipsByUser = new Map<
+			string,
+			{ role: string; organization: { id: string; name: string } }[]
+		>();
+		for (const m of memberships) {
+			const list = membershipsByUser.get(m.userId) ?? [];
+			list.push({ role: m.role, organization: m.organization });
+			membershipsByUser.set(m.userId, list);
+		}
+
+		return result.users.map((user) => ({
+			...user,
+			organizations: membershipsByUser.get(user.id) ?? [],
+		}));
 	}),
 
 	/** Cria um novo usuário e adiciona como membro da org ativa (somente admin). */
@@ -32,6 +58,10 @@ export const userRouter = createTRPCRouter({
 		.input(
 			z.object({
 				name: z.string().min(1, "Nome é obrigatório"),
+				username: z
+					.string()
+					.min(3, "Usuário deve ter pelo menos 3 caracteres")
+					.max(30, "Usuário deve ter no máximo 30 caracteres"),
 				email: z.string().email("Email inválido"),
 				password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
 				role: z.enum(["user", "admin"]).default("user"),
@@ -39,22 +69,30 @@ export const userRouter = createTRPCRouter({
 		)
 		.mutation(async ({ ctx, input }) => {
 			assertAdmin(ctx.session.user.role);
-			const newUser = await auth.api.createUser({
+			const newUser = await auth.api.signUpEmail({
 				body: {
 					name: input.name,
+					username: input.username,
 					email: input.email,
 					password: input.password,
-					role: input.role,
 				},
 				headers: ctx.headers,
 			});
 
-			// Adiciona o novo usuário como membro da organização ativa do admin
+			// Define o role se não for "user" (padrão)
 			const createdUserId =
 				typeof newUser === "object" && newUser !== null && "user" in newUser
 					? (newUser as { user: { id: string } }).user.id
 					: (newUser as { id: string }).id;
 
+			if (input.role !== "user") {
+				await auth.api.setRole({
+					body: { userId: createdUserId, role: input.role },
+					headers: ctx.headers,
+				});
+			}
+
+			// Adiciona o novo usuário como membro da organização ativa do admin
 			const alreadyMember = await ctx.db.member.findFirst({
 				where: {
 					userId: createdUserId,

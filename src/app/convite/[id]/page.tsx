@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,13 +11,21 @@ import { api } from "@/trpc/react";
 
 const registerSchema = z.object({
 	name: z.string().min(1, "Nome é obrigatório"),
+	username: z
+		.string()
+		.min(3, "Usuário deve ter pelo menos 3 caracteres")
+		.max(30, "Usuário deve ter no máximo 30 caracteres")
+		.regex(
+			/^[a-zA-Z0-9_.]+$/,
+			"Usuário deve conter apenas letras, números, pontos e underscores",
+		),
 	email: z.string().email("Email inválido"),
 	password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
 });
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 const loginSchema = z.object({
-	email: z.string().min(1, "Email é obrigatório").email("Email inválido"),
+	username: z.string().min(1, "Usuário é obrigatório"),
 	password: z.string().min(1, "Senha é obrigatória"),
 });
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -39,13 +47,20 @@ export default function ConvitePage() {
 	// ── Formulário de registro ─────────────────────────────
 	const registerForm = useForm<RegisterFormData>({
 		resolver: zodResolver(registerSchema),
-		defaultValues: { name: "", email: invitation?.email ?? "", password: "" },
+		defaultValues: { name: "", username: "", email: "", password: "" },
 	});
+
+	// Preenche o email automaticamente quando o convite carrega
+	useEffect(() => {
+		if (invitation?.email) {
+			registerForm.setValue("email", invitation.email);
+		}
+	}, [invitation?.email, registerForm]);
 
 	// ── Formulário de login ────────────────────────────────
 	const loginForm = useForm<LoginFormData>({
 		resolver: zodResolver(loginSchema),
-		defaultValues: { email: invitation?.email ?? "", password: "" },
+		defaultValues: { username: "", password: "" },
 	});
 
 	// ── Aceitar convite ────────────────────────────────────
@@ -70,6 +85,7 @@ export default function ConvitePage() {
 		try {
 			const { error } = await authClient.signUp.email({
 				name: data.name,
+				username: data.username,
 				email: data.email,
 				password: data.password,
 			});
@@ -90,12 +106,12 @@ export default function ConvitePage() {
 	async function onLogin(data: LoginFormData) {
 		setAcceptError(null);
 		try {
-			const { error } = await authClient.signIn.email({
-				email: data.email,
+			const { error } = await authClient.signIn.username({
+				username: data.username,
 				password: data.password,
 			});
 			if (error) {
-				setAcceptError(error.message ?? "Email ou senha inválidos.");
+				setAcceptError(error.message ?? "Usuário ou senha inválidos.");
 				return;
 			}
 			// Após login, aceitar convite
@@ -304,6 +320,26 @@ export default function ConvitePage() {
 									<div className="flex flex-col gap-2">
 										<label
 											className="text-sm font-medium"
+											htmlFor="reg-username"
+										>
+											Usuário
+										</label>
+										<input
+											id="reg-username"
+											className="h-11 rounded-xl bg-white/10 px-3 text-sm text-white outline-none ring-1 ring-white/10 placeholder:text-white/40 focus:ring-2 focus:ring-white/30"
+											placeholder="nome.sobrenome"
+											{...registerForm.register("username")}
+										/>
+										{registerForm.formState.errors.username ? (
+											<p className="text-xs text-red-300">
+												{registerForm.formState.errors.username.message}
+											</p>
+										) : null}
+									</div>
+
+									<div className="flex flex-col gap-2">
+										<label
+											className="text-sm font-medium"
 											htmlFor="reg-email"
 										>
 											Email
@@ -311,16 +347,14 @@ export default function ConvitePage() {
 										<input
 											id="reg-email"
 											type="email"
-											className="h-11 rounded-xl bg-white/10 px-3 text-sm text-white outline-none ring-1 ring-white/10 placeholder:text-white/40 focus:ring-2 focus:ring-white/30"
-											placeholder={invitation.email}
-											defaultValue={invitation.email}
+											readOnly
+											className="h-11 rounded-xl bg-white/5 px-3 text-sm text-white/60 outline-none ring-1 ring-white/10 cursor-not-allowed"
+											value={invitation.email}
 											{...registerForm.register("email")}
 										/>
-										{registerForm.formState.errors.email ? (
-											<p className="text-xs text-red-300">
-												{registerForm.formState.errors.email.message}
-											</p>
-										) : null}
+										<p className="text-xs text-white/40">
+											Email definido pelo convite
+										</p>
 									</div>
 
 									<div className="flex flex-col gap-2">
@@ -362,21 +396,19 @@ export default function ConvitePage() {
 									<div className="flex flex-col gap-2">
 										<label
 											className="text-sm font-medium"
-											htmlFor="login-email"
+											htmlFor="login-username"
 										>
-											Email
+											Usuário
 										</label>
 										<input
-											id="login-email"
-											type="email"
+											id="login-username"
 											className="h-11 rounded-xl bg-white/10 px-3 text-sm text-white outline-none ring-1 ring-white/10 placeholder:text-white/40 focus:ring-2 focus:ring-white/30"
-											placeholder="voce@exemplo.com"
-											defaultValue={invitation.email}
-											{...loginForm.register("email")}
+											placeholder="seu.usuario"
+											{...loginForm.register("username")}
 										/>
-										{loginForm.formState.errors.email ? (
+										{loginForm.formState.errors.username ? (
 											<p className="text-xs text-red-300">
-												{loginForm.formState.errors.email.message}
+												{loginForm.formState.errors.username.message}
 											</p>
 										) : null}
 									</div>

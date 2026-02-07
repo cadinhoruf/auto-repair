@@ -32,6 +32,9 @@ model User {
   name  String //@db.Text
   email String
 
+  username        String?  @unique
+  displayUsername  String?  @unique
+
   emailVerified Boolean   @default(false)
   image         String? //@db.Text
   role          String   @default("user")

@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin } from "better-auth/plugins";
 import { organization } from "better-auth/plugins";
+import { username } from "better-auth/plugins";
 
 import { env } from "@/env";
 import { db } from "@/server/db";
@@ -22,6 +23,10 @@ export const auth = betterAuth({
 			async sendInvitationEmail() {
 				// no-op: o link é gerado e exibido na interface
 			},
+		}),
+		username({
+			minUsernameLength: 3,
+			maxUsernameLength: 30,
 		}),
 	],
 	databaseHooks: {
