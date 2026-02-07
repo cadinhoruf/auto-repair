@@ -126,23 +126,23 @@ export default function ConvitePage() {
 	// ── Estados de carregamento/erro ───────────────────────
 	if (isLoading) {
 		return (
-			<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-blue-800 to-blue-950 px-4 py-16 text-white">
-				<p className="text-sm text-white/70">Carregando convite...</p>
+			<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-sky-50 to-blue-50 px-4 py-16">
+				<p className="text-sm text-gray-500">Carregando convite...</p>
 			</main>
 		);
 	}
 
 	if (error || !invitation) {
 		return (
-			<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-blue-800 to-blue-950 px-4 py-16 text-white">
-				<div className="w-full max-w-md rounded-2xl bg-white/5 p-6 shadow-sm ring-1 ring-white/10 text-center">
-					<h1 className="font-semibold text-xl">Convite Inválido</h1>
-					<p className="mt-2 text-sm text-white/70">
+			<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-sky-50 to-blue-50 px-4 py-16">
+				<div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-8 shadow-sm text-center">
+					<h1 className="font-semibold text-lg text-gray-900">Convite inválido</h1>
+					<p className="mt-2 text-sm text-gray-500">
 						{error?.message ?? "Este convite não existe ou já foi utilizado."}
 					</p>
 					<button
 						onClick={() => router.push("/")}
-						className="mt-4 inline-flex h-10 items-center rounded-xl bg-white px-4 text-sm font-semibold text-black transition hover:bg-white/90"
+						className="mt-6 inline-flex h-10 items-center rounded-lg bg-sky-600 px-4 text-sm font-medium text-white transition hover:bg-sky-500"
 					>
 						Ir para Login
 					</button>
@@ -153,10 +153,10 @@ export default function ConvitePage() {
 
 	if (invitation.status !== "pending") {
 		return (
-			<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-blue-800 to-blue-950 px-4 py-16 text-white">
-				<div className="w-full max-w-md rounded-2xl bg-white/5 p-6 shadow-sm ring-1 ring-white/10 text-center">
-					<h1 className="font-semibold text-xl">Convite Expirado</h1>
-					<p className="mt-2 text-sm text-white/70">
+			<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-sky-50 to-blue-50 px-4 py-16">
+				<div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-8 shadow-sm text-center">
+					<h1 className="font-semibold text-lg text-gray-900">Convite encerrado</h1>
+					<p className="mt-2 text-sm text-gray-500">
 						Este convite já foi{" "}
 						{invitation.status === "accepted"
 							? "aceito"
@@ -167,7 +167,7 @@ export default function ConvitePage() {
 					</p>
 					<button
 						onClick={() => router.push("/")}
-						className="mt-4 inline-flex h-10 items-center rounded-xl bg-white px-4 text-sm font-semibold text-black transition hover:bg-white/90"
+						className="mt-6 inline-flex h-10 items-center rounded-lg bg-sky-600 px-4 text-sm font-medium text-white transition hover:bg-sky-500"
 					>
 						Ir para Login
 					</button>
@@ -179,17 +179,17 @@ export default function ConvitePage() {
 	const isExpired = new Date(invitation.expiresAt) < new Date();
 	if (isExpired) {
 		return (
-			<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-blue-800 to-blue-950 px-4 py-16 text-white">
-				<div className="w-full max-w-md rounded-2xl bg-white/5 p-6 shadow-sm ring-1 ring-white/10 text-center">
-					<h1 className="font-semibold text-xl">Convite Expirado</h1>
-					<p className="mt-2 text-sm text-white/70">
-						Este convite expirou em{" "}
+			<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-sky-50 to-blue-50 px-4 py-16">
+				<div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-8 shadow-sm text-center">
+					<h1 className="font-semibold text-lg text-gray-900">Convite expirado</h1>
+					<p className="mt-2 text-sm text-gray-500">
+						Expirado em{" "}
 						{new Date(invitation.expiresAt).toLocaleDateString("pt-BR")}.
 						Peça um novo convite ao administrador.
 					</p>
 					<button
 						onClick={() => router.push("/")}
-						className="mt-4 inline-flex h-10 items-center rounded-xl bg-white px-4 text-sm font-semibold text-black transition hover:bg-white/90"
+						className="mt-6 inline-flex h-10 items-center rounded-lg bg-sky-600 px-4 text-sm font-medium text-white transition hover:bg-sky-500"
 					>
 						Ir para Login
 					</button>
@@ -199,45 +199,42 @@ export default function ConvitePage() {
 	}
 
 	return (
-		<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-blue-800 to-blue-950 px-4 py-16 text-white">
+		<main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-sky-50 to-blue-50 px-4 py-16">
 			<div className="w-full max-w-md">
-				{/* Header */}
-				<div className="mb-6 text-center">
-					<div className="text-sm font-semibold tracking-wide text-white/80">
-						Auto Repair
+				<div className="mb-8 text-center">
+					<div className="text-sm font-semibold tracking-wide text-sky-700">
+						Mecânica Fácil
 					</div>
-					<div className="mt-1 text-xs text-white/60">
+					<div className="mt-1 text-xs text-gray-500">
 						Convite para organização
 					</div>
 				</div>
 
-				<div className="rounded-2xl bg-white/5 p-6 shadow-sm ring-1 ring-white/10">
-					{/* Detalhes do convite */}
-					<div className="mb-5 rounded-xl bg-white/5 p-4 ring-1 ring-white/10">
-						<p className="text-sm text-white/90">
-							<span className="font-medium">{invitation.inviterName}</span>{" "}
-							convidou você para a organização
+				<div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+					<div className="mb-5 rounded-xl border border-gray-100 bg-gray-50/80 p-4">
+						<p className="text-sm text-gray-600">
+							<span className="font-medium text-gray-900">{invitation.inviterName}</span>{" "}
+							convidou você para
 						</p>
-						<p className="mt-1 font-semibold text-lg text-white">
+						<p className="mt-1 font-semibold text-gray-900">
 							{invitation.organizationName}
 						</p>
-						<p className="mt-1 text-xs text-white/60">
+						<p className="mt-1 text-xs text-gray-500">
 							Papel: {invitation.role === "admin" ? "Administrador" : "Membro"}
 						</p>
 					</div>
 
-					{/* Já logado — aceitar direto */}
 					{session?.user ? (
 						<div>
-							<p className="mb-3 text-sm text-white/80">
+							<p className="mb-3 text-sm text-gray-600">
 								Logado como{" "}
-								<span className="font-medium text-white">
+								<span className="font-medium text-gray-900">
 									{session.user.email}
 								</span>
 							</p>
 
 							{acceptError ? (
-								<div className="mb-3 rounded-xl bg-red-500/10 p-3 text-sm text-red-200 ring-1 ring-red-500/20">
+								<div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
 									{acceptError}
 								</div>
 							) : null}
@@ -246,13 +243,13 @@ export default function ConvitePage() {
 								<button
 									onClick={acceptInvitation}
 									disabled={isAccepting}
-									className="flex-1 inline-flex h-11 items-center justify-center rounded-xl bg-white px-4 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
+									className="flex-1 h-10 rounded-lg bg-sky-600 px-4 text-sm font-medium text-white transition hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
 								>
-									{isAccepting ? "Aceitando..." : "Aceitar Convite"}
+									{isAccepting ? "Aceitando..." : "Aceitar convite"}
 								</button>
 								<button
 									onClick={() => router.push("/dashboard")}
-									className="inline-flex h-11 items-center justify-center rounded-xl bg-white/10 px-4 text-sm font-medium text-white transition hover:bg-white/20"
+									className="h-10 rounded-lg border border-gray-200 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
 								>
 									Cancelar
 								</button>
@@ -260,25 +257,24 @@ export default function ConvitePage() {
 						</div>
 					) : (
 						<div>
-							{/* Toggle registro/login */}
-							<div className="mb-4 flex rounded-xl bg-white/5 p-1 ring-1 ring-white/10">
+							<div className="mb-4 flex rounded-lg border border-gray-200 p-1 bg-gray-50/80">
 								<button
 									type="button"
-									className={`flex-1 rounded-lg py-2 text-sm font-medium transition ${
+									className={`flex-1 rounded-md py-2 text-sm font-medium transition ${
 										mode === "register"
-											? "bg-white/10 text-white"
-											: "text-white/60 hover:text-white/80"
+											? "bg-white text-gray-900 shadow-sm"
+											: "text-gray-600 hover:text-gray-900"
 									}`}
 									onClick={() => setMode("register")}
 								>
-									Criar Conta
+									Criar conta
 								</button>
 								<button
 									type="button"
-									className={`flex-1 rounded-lg py-2 text-sm font-medium transition ${
+									className={`flex-1 rounded-md py-2 text-sm font-medium transition ${
 										mode === "login"
-											? "bg-white/10 text-white"
-											: "text-white/60 hover:text-white/80"
+											? "bg-white text-gray-900 shadow-sm"
+											: "text-gray-600 hover:text-gray-900"
 									}`}
 									onClick={() => setMode("login")}
 								>
@@ -287,7 +283,7 @@ export default function ConvitePage() {
 							</div>
 
 							{acceptError ? (
-								<div className="mb-3 rounded-xl bg-red-500/10 p-3 text-sm text-red-200 ring-1 ring-red-500/20">
+								<div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
 									{acceptError}
 								</div>
 							) : null}
@@ -297,95 +293,65 @@ export default function ConvitePage() {
 									className="flex flex-col gap-4"
 									onSubmit={registerForm.handleSubmit(onRegister)}
 								>
-									<div className="flex flex-col gap-2">
-										<label
-											className="text-sm font-medium"
-											htmlFor="reg-name"
-										>
-											Nome
-										</label>
+									<div className="flex flex-col gap-1.5">
+										<label className="text-sm font-medium text-gray-700" htmlFor="reg-name">Nome</label>
 										<input
 											id="reg-name"
-											className="h-11 rounded-xl bg-white/10 px-3 text-sm text-white outline-none ring-1 ring-white/10 placeholder:text-white/40 focus:ring-2 focus:ring-white/30"
+											className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 outline-none"
 											placeholder="Seu nome"
 											{...registerForm.register("name")}
 										/>
 										{registerForm.formState.errors.name ? (
-											<p className="text-xs text-red-300">
-												{registerForm.formState.errors.name.message}
-											</p>
+											<p className="text-xs text-red-600">{registerForm.formState.errors.name.message}</p>
 										) : null}
 									</div>
 
-									<div className="flex flex-col gap-2">
-										<label
-											className="text-sm font-medium"
-											htmlFor="reg-username"
-										>
-											Usuário
-										</label>
+									<div className="flex flex-col gap-1.5">
+										<label className="text-sm font-medium text-gray-700" htmlFor="reg-username">Usuário</label>
 										<input
 											id="reg-username"
-											className="h-11 rounded-xl bg-white/10 px-3 text-sm text-white outline-none ring-1 ring-white/10 placeholder:text-white/40 focus:ring-2 focus:ring-white/30"
+											className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 outline-none"
 											placeholder="nome.sobrenome"
 											{...registerForm.register("username")}
 										/>
 										{registerForm.formState.errors.username ? (
-											<p className="text-xs text-red-300">
-												{registerForm.formState.errors.username.message}
-											</p>
+											<p className="text-xs text-red-600">{registerForm.formState.errors.username.message}</p>
 										) : null}
 									</div>
 
-									<div className="flex flex-col gap-2">
-										<label
-											className="text-sm font-medium"
-											htmlFor="reg-email"
-										>
-											Email
-										</label>
+									<div className="flex flex-col gap-1.5">
+										<label className="text-sm font-medium text-gray-700" htmlFor="reg-email">Email</label>
 										<input
 											id="reg-email"
 											type="email"
 											readOnly
-											className="h-11 rounded-xl bg-white/5 px-3 text-sm text-white/60 outline-none ring-1 ring-white/10 cursor-not-allowed"
+											className="h-10 rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-500 cursor-not-allowed outline-none"
 											value={invitation.email}
 											{...registerForm.register("email")}
 										/>
-										<p className="text-xs text-white/40">
-											Email definido pelo convite
-										</p>
+										<p className="text-xs text-gray-500">Email do convite</p>
 									</div>
 
-									<div className="flex flex-col gap-2">
-										<label
-											className="text-sm font-medium"
-											htmlFor="reg-password"
-										>
-											Senha
-										</label>
+									<div className="flex flex-col gap-1.5">
+										<label className="text-sm font-medium text-gray-700" htmlFor="reg-password">Senha</label>
 										<input
 											id="reg-password"
 											type="password"
-											className="h-11 rounded-xl bg-white/10 px-3 text-sm text-white outline-none ring-1 ring-white/10 placeholder:text-white/40 focus:ring-2 focus:ring-white/30"
+											className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 outline-none"
 											placeholder="Mínimo 6 caracteres"
 											{...registerForm.register("password")}
 										/>
 										{registerForm.formState.errors.password ? (
-											<p className="text-xs text-red-300">
-												{registerForm.formState.errors.password.message}
-											</p>
+											<p className="text-xs text-red-600">{registerForm.formState.errors.password.message}</p>
 										) : null}
 									</div>
 
 									<button
 										type="submit"
 										disabled={registerForm.formState.isSubmitting}
-										className="mt-1 inline-flex h-11 items-center justify-center rounded-xl bg-white px-4 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
+										className="mt-1 h-10 rounded-lg bg-sky-600 px-4 text-sm font-medium text-white transition hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
 									>
-										{registerForm.formState.isSubmitting
-											? "Criando conta..."
-											: "Criar Conta e Aceitar"}
+										{registerForm.formState.isSubmitting ? "Criando conta..." : "Criar conta e aceitar"}
 									</button>
 								</form>
 							) : (
@@ -393,55 +359,39 @@ export default function ConvitePage() {
 									className="flex flex-col gap-4"
 									onSubmit={loginForm.handleSubmit(onLogin)}
 								>
-									<div className="flex flex-col gap-2">
-										<label
-											className="text-sm font-medium"
-											htmlFor="login-username"
-										>
-											Usuário
-										</label>
+									<div className="flex flex-col gap-1.5">
+										<label className="text-sm font-medium text-gray-700" htmlFor="login-username">Usuário</label>
 										<input
 											id="login-username"
-											className="h-11 rounded-xl bg-white/10 px-3 text-sm text-white outline-none ring-1 ring-white/10 placeholder:text-white/40 focus:ring-2 focus:ring-white/30"
+											className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 outline-none"
 											placeholder="seu.usuario"
 											{...loginForm.register("username")}
 										/>
 										{loginForm.formState.errors.username ? (
-											<p className="text-xs text-red-300">
-												{loginForm.formState.errors.username.message}
-											</p>
+											<p className="text-xs text-red-600">{loginForm.formState.errors.username.message}</p>
 										) : null}
 									</div>
 
-									<div className="flex flex-col gap-2">
-										<label
-											className="text-sm font-medium"
-											htmlFor="login-password"
-										>
-											Senha
-										</label>
+									<div className="flex flex-col gap-1.5">
+										<label className="text-sm font-medium text-gray-700" htmlFor="login-password">Senha</label>
 										<input
 											id="login-password"
 											type="password"
-											className="h-11 rounded-xl bg-white/10 px-3 text-sm text-white outline-none ring-1 ring-white/10 placeholder:text-white/40 focus:ring-2 focus:ring-white/30"
+											className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 outline-none"
 											placeholder="••••••••"
 											{...loginForm.register("password")}
 										/>
 										{loginForm.formState.errors.password ? (
-											<p className="text-xs text-red-300">
-												{loginForm.formState.errors.password.message}
-											</p>
+											<p className="text-xs text-red-600">{loginForm.formState.errors.password.message}</p>
 										) : null}
 									</div>
 
 									<button
 										type="submit"
 										disabled={loginForm.formState.isSubmitting}
-										className="mt-1 inline-flex h-11 items-center justify-center rounded-xl bg-white px-4 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
+										className="mt-1 h-10 rounded-lg bg-sky-600 px-4 text-sm font-medium text-white transition hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
 									>
-										{loginForm.formState.isSubmitting
-											? "Entrando..."
-											: "Entrar e Aceitar"}
+										{loginForm.formState.isSubmitting ? "Entrando..." : "Entrar e aceitar"}
 									</button>
 								</form>
 							)}

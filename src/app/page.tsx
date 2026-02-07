@@ -9,14 +9,14 @@ export default async function LoginPage() {
   if (session) redirect("/dashboard");
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-blue-800 to-blue-950 px-4 py-16 text-white">
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-sky-50 to-blue-50 px-4 py-16">
       <div className="w-full max-w-md">
-        <div className="mb-6 text-center">
-          <div className="text-sm font-semibold tracking-wide text-white/80">
-            Auto Repair
+        <div className="mb-8 text-center">
+          <div className="text-sm font-semibold tracking-wide text-sky-700">
+            Mecânica Fácil
           </div>
-          <div className="mt-1 text-xs text-white/60">
-            Sistema de gestão da oficina
+          <div className="mt-1 text-sm text-gray-500">
+            Sistema de gestão para oficinas
           </div>
         </div>
         <LoginForm />

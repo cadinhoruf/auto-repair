@@ -4,7 +4,7 @@ import { env } from "@/env";
 
 const resend = new Resend(env.RESEND_API_KEY);
 
-const FROM_ADDRESS = "Auto Repair <onboarding@resend.dev>";
+const FROM_ADDRESS = "Mecânica Fácil <onboarding@resend.dev>";
 
 interface InvitationEmailParams {
 	to: string;
@@ -35,7 +35,7 @@ export async function sendInvitationEmail({
 	const { error } = await resend.emails.send({
 		from: FROM_ADDRESS,
 		to,
-		subject: `Convite para ${organizationName} — Auto Repair`,
+		subject: `Convite para ${organizationName} — Mecânica Fácil`,
 		html: `
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -51,7 +51,7 @@ export async function sendInvitationEmail({
           <!-- Header -->
           <tr>
             <td style="background:linear-gradient(135deg,#1648ff,#0b3af6);padding:32px 40px;text-align:center;">
-              <h1 style="margin:0;color:#ffffff;font-size:20px;font-weight:600;letter-spacing:-0.02em;">Auto Repair</h1>
+              <h1 style="margin:0;color:#ffffff;font-size:20px;font-weight:600;letter-spacing:-0.02em;">Mecânica Fácil</h1>
               <p style="margin:8px 0 0;color:rgba(255,255,255,0.8);font-size:13px;">Convite para organização</p>
             </td>
           </tr>
@@ -104,7 +104,7 @@ export async function sendInvitationEmail({
           <tr>
             <td style="padding:20px 40px;border-top:1px solid #f3f4f6;text-align:center;">
               <p style="margin:0;color:#9ca3af;font-size:11px;">
-                Auto Repair — Sistema de gestão da oficina
+                Mecânica Fácil — Sistema de gestão para oficinas
               </p>
             </td>
           </tr>

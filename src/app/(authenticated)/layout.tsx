@@ -44,7 +44,7 @@ export default async function AuthenticatedLayout({
 			<aside className="flex w-56 shrink-0 flex-col border-r border-gray-200 bg-white">
 				<div className="flex h-14 items-center border-b border-gray-200 px-4">
 					<span className="font-semibold text-sm text-blue-600 truncate">
-						{activeOrg?.name ?? "Auto Repair"}
+						{activeOrg?.name ?? "Mecânica Fácil"}
 					</span>
 				</div>
 
