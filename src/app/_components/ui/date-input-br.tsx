@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { isoToDisplayBR, maskDateBR, parseDateBR } from "@/lib/date-br";
 
 interface DateInputBRProps {
@@ -34,6 +34,7 @@ export function DateInputBR({
 }: DateInputBRProps) {
 	const isoDisplay = value ? isoToDisplayBR(value) : "";
 	const [local, setLocal] = useState(isoDisplay);
+	const committedByEnterRef = useRef(false);
 
 	// Sincroniza exibição quando o value externo muda (ex.: defaultValues do form)
 	useEffect(() => {
@@ -66,11 +67,18 @@ export function DateInputBR({
 		}
 	};
 
-	const handleBlur = () => commitValue();
+	const handleBlur = () => {
+		if (committedByEnterRef.current) {
+			committedByEnterRef.current = false;
+			return;
+		}
+		commitValue();
+	};
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Enter") {
 			e.preventDefault();
+			committedByEnterRef.current = true;
 			commitValue();
 			(e.target as HTMLInputElement).blur();
 		}
