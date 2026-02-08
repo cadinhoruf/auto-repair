@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -5,6 +6,12 @@ import { SidebarNav } from "@/app/(authenticated)/_components/sidebar-nav";
 import { auth } from "@/server/better-auth";
 import { getSession } from "@/server/better-auth/server";
 import { db } from "@/server/db";
+
+export const metadata: Metadata = {
+	title: "Painel",
+	description: "Área restrita do sistema de gestão para oficinas.",
+	robots: { index: false, follow: false },
+};
 
 type NavLinkItem = { href: string; label: string; adminOnly?: boolean };
 

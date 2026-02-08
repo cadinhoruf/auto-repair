@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { getSession } from "@/server/better-auth/server";
+
+export const metadata: Metadata = {
+	title: "Painel",
+	description: "Visão geral e acesso rápido às funcionalidades do sistema.",
+};
 
 const cards = [
 	{ href: "/clientes", label: "Clientes", description: "Gerenciar clientes da oficina" },

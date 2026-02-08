@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { getSession } from "@/server/better-auth/server";
 import { LoginForm } from "./_components/login-form";
 
+export const metadata: Metadata = {
+	title: "Entrar",
+	description: "Faça login no sistema de gestão para oficinas mecânicas.",
+	robots: { index: false, follow: false },
+};
 
 export default async function LoginPage() {
   const session = await getSession();
