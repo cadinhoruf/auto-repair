@@ -10,6 +10,8 @@ interface DateInputBRProps {
 	error?: string;
 	value: string; // YYYY-MM-DD
 	onChange: (value: string) => void; // envia YYYY-MM-DD
+	/** Chamado apenas ao dar blur no campo, com o valor final (evita refetch a cada tecla). */
+	onCommit?: (value: string) => void;
 	placeholder?: string;
 	className?: string;
 	disabled?: boolean;
@@ -25,6 +27,7 @@ export function DateInputBR({
 	error,
 	value,
 	onChange,
+	onCommit,
 	placeholder = "dd/mm/aaaa",
 	className = "",
 	disabled,
@@ -48,16 +51,28 @@ export function DateInputBR({
 		if (iso) onChange(iso);
 	};
 
-	const handleBlur = () => {
+	const commitValue = () => {
 		const iso = parseDateBR(local);
 		if (iso) {
 			onChange(iso);
 			setLocal(isoToDisplayBR(iso));
+			onCommit?.(iso);
 		} else if (local.trim() === "") {
 			onChange("");
 			setLocal("");
+			onCommit?.("");
 		} else {
 			setLocal(isoDisplay);
+		}
+	};
+
+	const handleBlur = () => commitValue();
+
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		if (e.key === "Enter") {
+			e.preventDefault();
+			commitValue();
+			(e.target as HTMLInputElement).blur();
 		}
 	};
 
@@ -77,6 +92,7 @@ export function DateInputBR({
 				value={local}
 				onChange={handleChange}
 				onBlur={handleBlur}
+				onKeyDown={handleKeyDown}
 				disabled={disabled}
 				className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
 			/>

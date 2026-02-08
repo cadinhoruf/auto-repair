@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "mcp-ui Docs": {
+      "url": "https://gitmcp.io/idosal/mcp-ui"
+    },
+    "table Docs": {
+      "url": "https://gitmcp.io/TanStack/table"
+    },
+    "Sentry": {
+      "url": "https://mcp.sentry.dev/mcp",
+      "headers": {}
+    },
+    "figma": {
+      "url": "https://mcp.figma.com/mcp",
+      "type": "http"
+    },
+    "Better Auth": {
+      "url": "https://mcp.inkeep.com/better-auth/mcp",
+      "headers": {}
+    },
+    "next-devtools": {
+      "command": "npx",
+      "args": ["-y", "next-devtools-mcp@latest"]
+    },
+    "trpc Docs": {
+      "url": "https://gitmcp.io/trpc/trpc"
+    }
+  }
+}

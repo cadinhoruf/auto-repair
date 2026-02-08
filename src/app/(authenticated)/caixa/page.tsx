@@ -11,7 +11,8 @@ import {
 	useReactTable,
 } from "@tanstack/react-table";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { DateInputBR } from "@/app/_components/ui/date-input-br";
 import { EmptyState } from "@/app/_components/ui/empty-state";
@@ -38,6 +39,29 @@ function toISO(date: Date | string): string {
 }
 
 type CashFlowEntry = RouterOutputs["cashFlow"]["list"][number];
+
+const EMPTY_ENTRIES: CashFlowEntry[] = [];
+
+const PaidAtCell = memo(function PaidAtCell({
+	cashFlowId,
+	paidAtIso,
+	onCommit,
+}: {
+	cashFlowId: string;
+	paidAtIso: string;
+	onCommit: (cashFlowId: string, value: string) => void;
+}) {
+	return (
+		<DateInputBR
+			label=""
+			value={paidAtIso}
+			onChange={() => {}}
+			onCommit={(value: string) => onCommit(cashFlowId, value)}
+			placeholder="dd/mm/aaaa"
+			className="min-w-[8rem] gap-0"
+		/>
+	);
+});
 
 function DebouncedInput({
 	value: initialValue,
@@ -83,6 +107,11 @@ function TableFilter({ column }: { column: { getFilterValue: () => unknown; setF
 	);
 }
 
+const getRowId = (row: CashFlowEntry) => row.id;
+const coreRowModel = getCoreRowModel();
+const sortedRowModel = getSortedRowModel();
+const filteredRowModel = getFilteredRowModel();
+
 export default function CaixaPage() {
 	const [tab, setTab] = useState<(typeof TABS)[number]["value"]>("all");
 	const [dateFrom, setDateFrom] = useState("");
@@ -102,9 +131,17 @@ export default function CaixaPage() {
 
 	const setPaidAt = api.cashFlow.setPaidAt.useMutation({
 		onSuccess: async () => {
+			toast.success("Data de pagamento atualizada.");
 			await utils.cashFlow.list.invalidate();
 		},
 	});
+
+	const mutatePaidAtRef = useRef(setPaidAt.mutate);
+	mutatePaidAtRef.current = setPaidAt.mutate;
+
+	const handlePaidAtCommit = useCallback((cashFlowId: string, value: string) => {
+		mutatePaidAtRef.current({ cashFlowId, paidAt: value });
+	}, []);
 
 	const columns = useMemo<ColumnDef<CashFlowEntry>[]>(
 		() => [
@@ -168,17 +205,10 @@ export default function CaixaPage() {
 				accessorKey: "paidAt",
 				header: "Data de pagamento",
 				cell: ({ row }) => (
-					<DateInputBR
-						label=""
-						value={row.original.paidAt ? toISO(row.original.paidAt) : ""}
-						onChange={(value) =>
-							setPaidAt.mutate({
-								cashFlowId: row.original.id,
-								paidAt: value,
-							})
-						}
-						placeholder="dd/mm/aaaa"
-						className="min-w-[8rem] gap-0"
+					<PaidAtCell
+						cashFlowId={row.original.id}
+						paidAtIso={row.original.paidAt ? toISO(row.original.paidAt) : ""}
+						onCommit={handlePaidAtCommit}
 					/>
 				),
 				enableSorting: true,
@@ -187,21 +217,22 @@ export default function CaixaPage() {
 				enableColumnFilter: false,
 			},
 		],
-		[setPaidAt],
+		[handlePaidAtCommit],
 	);
 
 	const table = useReactTable({
-		data: entries ?? [],
+		data: entries ?? EMPTY_ENTRIES,
 		columns,
+		getRowId,
 		state: {
 			sorting,
 			columnFilters,
 		},
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
+		getCoreRowModel: coreRowModel,
+		getSortedRowModel: sortedRowModel,
+		getFilteredRowModel: filteredRowModel,
 	});
 
 	return (

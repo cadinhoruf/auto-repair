@@ -5,6 +5,7 @@ import { Geist } from "next/font/google";
 
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, defaultOpenGraph } from "@/lib/seo";
 import { TRPCReactProvider } from "@/trpc/react";
+import { Toaster } from "sonner";
 
 export const viewport: Viewport = {
 	themeColor: "#2563eb",
@@ -51,6 +52,7 @@ export default function RootLayout({
 		<html className={`${geist.variable}`} lang="pt-BR">
 			<body>
 				<TRPCReactProvider>{children}</TRPCReactProvider>
+				<Toaster richColors position="top-center" toastOptions={{ }}  />
 			</body>
 		</html>
 	);
