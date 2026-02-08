@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import type { Prisma } from "../../../../generated/prisma/client";
 
 const typeEnum = z.enum(["IN", "OUT"]);
 const tabEnum = z.enum(["all", "IN", "OUT", "receivable", "payable", "pending"]);
@@ -25,7 +26,7 @@ export const cashFlowRouter = createTRPCRouter({
 		)
 		.query(async ({ ctx, input }) => {
 			const today = startOfDay(new Date());
-			const where: Parameters<typeof ctx.db.cashFlow.findMany>[0]["where"] = {
+			const where: Prisma.CashFlowWhereInput = {
 				deletedAt: null,
 				organizationId: ctx.organizationId,
 			};
@@ -79,6 +80,7 @@ export const cashFlowRouter = createTRPCRouter({
 					description: true,
 					amount: true,
 					date: true,
+					paidAt: true,
 					cashFlowGroupId: true,
 					installmentIndex: true,
 					serviceOrderId: true,
@@ -162,5 +164,41 @@ export const cashFlowRouter = createTRPCRouter({
 				where: { cashFlowGroupId: groupId },
 				orderBy: { installmentIndex: "asc" },
 			});
+		}),
+
+	/** Define a data de pagamento (quando foi pago). Envie string vazia para limpar. */
+	setPaidAt: protectedProcedure
+		.input(
+			z.object({
+				cashFlowId: z.string().min(1, "ID é obrigatório"),
+				paidAt: z.string(), // YYYY-MM-DD ou "" para limpar
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const existing = await ctx.db.cashFlow.findFirst({
+				where: {
+					id: input.cashFlowId,
+					deletedAt: null,
+					organizationId: ctx.organizationId,
+				},
+			});
+			if (!existing) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "Movimentação não encontrada." });
+			}
+
+			const paidAt =
+				input.paidAt.trim().length >= 10
+					? (() => {
+							const [y, m, d] = input.paidAt.slice(0, 10).split("-").map(Number);
+							if (!y || !m || !d) return null;
+							return new Date(y, m - 1, d);
+						})()
+					: null;
+
+			await ctx.db.cashFlow.update({
+				where: { id: input.cashFlowId },
+				data: { paidAt },
+			});
+			return { ok: true };
 		}),
 });

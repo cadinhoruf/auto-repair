@@ -5,7 +5,8 @@ import { isoToDisplayBR, maskDateBR, parseDateBR } from "@/lib/date-br";
 
 interface DateInputBRProps {
 	id?: string;
-	label: string;
+	/** Se omitido ou vazio, o label não é exibido (útil em tabelas). */
+	label?: string;
 	error?: string;
 	value: string; // YYYY-MM-DD
 	onChange: (value: string) => void; // envia YYYY-MM-DD
@@ -62,9 +63,11 @@ export function DateInputBR({
 
 	return (
 		<div className={`flex flex-col gap-1.5 ${className}`}>
-			<label htmlFor={id} className="text-sm font-medium text-gray-700">
-				{label}
-			</label>
+			{label ? (
+				<label htmlFor={id} className="text-sm font-medium text-gray-700">
+					{label}
+				</label>
+			) : null}
 			<input
 				id={id}
 				type="text"

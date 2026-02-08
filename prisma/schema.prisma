@@ -221,6 +221,9 @@ model CashFlow {
   amount      Decimal
   date        DateTime     @default(now())
 
+  /** Data em que o pagamento foi realizado (null = ainda não pago) */
+  paidAt      DateTime?
+
   /** Agrupa parcelas do mesmo pagamento (ex.: "3x de R$ 100") */
   cashFlowGroupId String?
   installmentIndex Int?      // 1-based: 1/3, 2/3, 3/3
