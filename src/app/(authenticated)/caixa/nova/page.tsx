@@ -49,7 +49,7 @@ export default function NovaMovimentacaoPage() {
 			value: "",
 			date: new Date().toISOString().slice(0, 10),
 			serviceOrderId: preselectedOSId,
-			installmentsCount: "1",
+			installmentsCount: 1,
 			firstDueDate: new Date().toISOString().slice(0, 10),
 		},
 	});
