@@ -6,15 +6,27 @@ import { auth } from "@/server/better-auth";
 import { getSession } from "@/server/better-auth/server";
 import { db } from "@/server/db";
 
-const navLinks = [
-	{ href: "/dashboard", label: "Painel" },
-	{ href: "/clientes", label: "Clientes" },
-	{ href: "/ordens-servico", label: "Ordens de Serviço" },
-	{ href: "/caixa", label: "Fluxo de caixa" },
-	{ href: "/orcamentos", label: "Orçamentos" },
-	{ href: "/catalogo", label: "Catálogo" },
-	{ href: "/usuarios", label: "Usuários", adminOnly: true },
-	{ href: "/organizacoes", label: "Organizações", adminOnly: true },
+type NavLinkItem = { href: string; label: string; adminOnly?: boolean };
+
+const navGroups: { group: string; links: NavLinkItem[] }[] = [
+	{
+		group: "Operacional",
+		links: [
+			{ href: "/dashboard", label: "Painel" },
+			{ href: "/clientes", label: "Clientes" },
+			{ href: "/catalogo", label: "Catálogo" },
+			{ href: "/ordens-servico", label: "Ordens de Serviço" },
+			{ href: "/orcamentos", label: "Orçamentos" },
+			{ href: "/caixa", label: "Fluxo de caixa" },
+		],
+	},
+	{
+		group: "Administração",
+		links: [
+			{ href: "/organizacoes", label: "Organizações", adminOnly: true },
+			{ href: "/usuarios", label: "Usuários", adminOnly: true },
+		],
+	},
 ];
 
 export default async function AuthenticatedLayout({
@@ -26,7 +38,12 @@ export default async function AuthenticatedLayout({
 	if (!session) redirect("/");
 
 	const isAdmin = session.user.role === "admin";
-	const visibleLinks = navLinks.filter((link) => !link.adminOnly || isAdmin);
+	const visibleGroups = navGroups
+		.map(({ group, links }) => ({
+			group,
+			links: links.filter((link) => !link.adminOnly || isAdmin),
+		}))
+		.filter((g) => g.links.length > 0);
 
 	// Busca o nome da organização ativa
 	const activeOrgId = (session.session as Record<string, unknown>)
@@ -48,7 +65,7 @@ export default async function AuthenticatedLayout({
 					</span>
 				</div>
 
-				<SidebarNav links={visibleLinks} />
+				<SidebarNav groups={visibleGroups} />
 
 				<div className="border-t border-gray-200 p-3">
 					<div className="mb-2 truncate px-3 text-xs text-gray-500">
