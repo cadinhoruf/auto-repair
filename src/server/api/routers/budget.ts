@@ -15,6 +15,8 @@ async function generateBudgetNumber(db: PrismaClient, organizationId: string) {
 	return `${prefix}-${String(count + 1).padStart(4, "0")}`;
 }
 
+const budgetStatusEnum = z.enum(["PENDING", "APPROVED", "REJECTED"]);
+
 const budgetItemSchema = z.object({
 	serviceItemId: z.string().optional(),
 	description: z.string().min(1, "Descrição é obrigatória"),
@@ -23,19 +25,26 @@ const budgetItemSchema = z.object({
 });
 
 export const budgetRouter = createTRPCRouter({
-	list: protectedProcedure.query(async ({ ctx }) => {
-		return ctx.db.budget.findMany({
-			where: { deletedAt: null, organizationId: ctx.organizationId },
-			select: {
-				id: true,
-				number: true,
-				totalAmount: true,
-				issuedAt: true,
-				client: { select: { id: true, name: true } },
-			},
-			orderBy: { issuedAt: "desc" },
-		});
-	}),
+	list: protectedProcedure
+		.input(z.object({ status: budgetStatusEnum.optional() }).optional())
+		.query(async ({ ctx, input }) => {
+			return ctx.db.budget.findMany({
+				where: {
+					deletedAt: null,
+					organizationId: ctx.organizationId,
+					...(input?.status ? { status: input.status } : {}),
+				},
+				select: {
+					id: true,
+					number: true,
+					totalAmount: true,
+					issuedAt: true,
+					status: true,
+					client: { select: { id: true, name: true } },
+				},
+				orderBy: { issuedAt: "desc" },
+			});
+		}),
 
 	getById: protectedProcedure
 		.input(z.object({ budgetId: z.string() }))
@@ -57,6 +66,7 @@ export const budgetRouter = createTRPCRouter({
 				clientId: z.string(),
 				items: z.array(budgetItemSchema).min(1, "Adicione pelo menos um item"),
 				notes: z.string().optional(),
+				problemDescription: z.string().optional(),
 				serviceOrderId: z.string().optional(),
 			}),
 		)
@@ -89,6 +99,7 @@ export const budgetRouter = createTRPCRouter({
 					clientId: input.clientId,
 					totalAmount,
 					notes: input.notes,
+					problemDescription: input.problemDescription,
 					serviceOrderId: input.serviceOrderId,
 					organizationId: ctx.organizationId,
 					items: {
@@ -96,6 +107,23 @@ export const budgetRouter = createTRPCRouter({
 					},
 				},
 				include: { items: true },
+			});
+		}),
+
+	updateStatus: protectedProcedure
+		.input(
+			z.object({
+				budgetId: z.string(),
+				status: z.enum(["APPROVED", "REJECTED"]),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			await ctx.db.budget.findFirstOrThrow({
+				where: { id: input.budgetId, deletedAt: null, organizationId: ctx.organizationId },
+			});
+			return ctx.db.budget.update({
+				where: { id: input.budgetId },
+				data: { status: input.status },
 			});
 		}),
 });

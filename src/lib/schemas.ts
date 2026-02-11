@@ -106,6 +106,7 @@ export const budgetItemDraftSchema = z.object({
 
 export const budgetSchema = z.object({
 	clientId: z.string().min(1, "Selecione um cliente"),
+	problemDescription: z.string().optional(),
 	notes: z.string().optional(),
 	serviceOrderId: z.string().optional(),
 	items: z.array(budgetItemDraftSchema).min(1, "Adicione pelo menos um item"),

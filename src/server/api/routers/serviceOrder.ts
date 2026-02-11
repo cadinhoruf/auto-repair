@@ -107,4 +107,59 @@ export const serviceOrderRouter = createTRPCRouter({
 				},
 			});
 		}),
+
+	createFromBudget: protectedProcedure
+		.input(z.object({ budgetId: z.string() }))
+		.mutation(async ({ ctx, input }) => {
+			const budget = await ctx.db.budget.findFirst({
+				where: {
+					id: input.budgetId,
+					deletedAt: null,
+					organizationId: ctx.organizationId,
+				},
+			});
+
+			if (!budget) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Orçamento não encontrado.",
+				});
+			}
+
+			if (budget.status !== "APPROVED") {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Só é possível gerar OS a partir de um orçamento aprovado.",
+				});
+			}
+
+			if (budget.serviceOrderId) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Este orçamento já possui uma ordem de serviço vinculada.",
+				});
+			}
+
+			const problemDescription =
+				budget.problemDescription ?? budget.notes ?? "Orçamento aprovado";
+
+			const serviceOrder = await ctx.db.serviceOrder.create({
+				data: {
+					clientId: budget.clientId,
+					organizationId: budget.organizationId,
+					problemDescription,
+					servicesPerformed: "",
+					partsUsed: "",
+					estimatedValue: budget.totalAmount,
+					status: "OPEN",
+				},
+			});
+
+			await ctx.db.budget.update({
+				where: { id: input.budgetId },
+				data: { serviceOrderId: serviceOrder.id },
+			});
+
+			return serviceOrder;
+		}),
 });
