@@ -37,6 +37,8 @@ function formatBrl(n: number) {
 function formatPivotValue(n: number): string {
 	if (n === 0) return "—";
 	return new Intl.NumberFormat("pt-BR", {
+		style: "currency",
+		currency: "BRL",
 		minimumFractionDigits: 0,
 		maximumFractionDigits: 0,
 	}).format(n);
