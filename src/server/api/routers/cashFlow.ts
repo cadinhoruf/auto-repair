@@ -5,7 +5,16 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import type { Prisma } from "../../../../generated/prisma/client";
 
 const typeEnum = z.enum(["IN", "OUT"]);
-const tabEnum = z.enum(["all", "IN", "OUT", "receivable", "payable", "pending"]);
+const tabEnum = z.enum([
+	"all",
+	"IN",
+	"OUT",
+	"receivable",
+	"payable",
+	"received",
+	"paid",
+	"pending",
+]);
 
 function startOfDay(d: Date) {
 	const x = new Date(d);
@@ -34,10 +43,16 @@ export const cashFlowRouter = createTRPCRouter({
 			if (input?.tab && input.tab !== "all") {
 				if (input.tab === "receivable") {
 					where.type = "IN";
-					where.date = { gte: today };
+					where.paidAt = null;
 				} else if (input.tab === "payable") {
 					where.type = "OUT";
-					where.date = { gte: today };
+					where.paidAt = null;
+				} else if (input.tab === "received") {
+					where.type = "IN";
+					where.paidAt = { not: null };
+				} else if (input.tab === "paid") {
+					where.type = "OUT";
+					where.paidAt = { not: null };
 				} else if (input.tab === "pending") {
 					where.date = { gte: today };
 				} else {
@@ -48,11 +63,7 @@ export const cashFlowRouter = createTRPCRouter({
 			}
 
 			const dateCond: { gte?: Date; lte?: Date } = {};
-			if (
-				input?.tab === "receivable" ||
-				input?.tab === "payable" ||
-				input?.tab === "pending"
-			) {
+			if (input?.tab === "pending") {
 				dateCond.gte = today;
 			}
 			if (input?.dateFrom) {
@@ -65,12 +76,21 @@ export const cashFlowRouter = createTRPCRouter({
 				dateCond.lte = new Date(input.dateTo + "T23:59:59.999");
 			}
 			if (Object.keys(dateCond).length > 0) {
-				where.date = dateCond;
+				if (input?.tab === "received" || input?.tab === "paid") {
+					where.paidAt = { not: null, ...dateCond };
+				} else {
+					where.date = dateCond;
+				}
 			}
 
 			if (input?.clientId) {
 				where.serviceOrder = { clientId: input.clientId };
 			}
+
+			const orderBy =
+				input?.tab === "received" || input?.tab === "paid"
+					? { paidAt: "desc" as const }
+					: { date: "desc" as const };
 
 			return ctx.db.cashFlow.findMany({
 				where,
@@ -91,8 +111,89 @@ export const cashFlowRouter = createTRPCRouter({
 						},
 					},
 				},
-				orderBy: { date: "desc" },
+				orderBy,
 			});
+		}),
+
+	/** Resumo agregado por mês para a tabela pivot. */
+	summaryByMonth: protectedProcedure
+		.input(
+			z.object({
+				dateFrom: z.string().regex(/^\d{4}-\d{2}$/, "Formato: YYYY-MM"),
+				dateTo: z.string().regex(/^\d{4}-\d{2}$/, "Formato: YYYY-MM"),
+				mode: z.enum(["previsao", "realizado"]),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			const fromParts = input.dateFrom.split("-").map(Number);
+			const toParts = input.dateTo.split("-").map(Number);
+			const fromY = fromParts[0] ?? 0;
+			const fromM = fromParts[1] ?? 1;
+			const toY = toParts[0] ?? 0;
+			const toM = toParts[1] ?? 1;
+			const start = new Date(fromY, fromM - 1, 1);
+			const end = new Date(toY, toM, 0, 23, 59, 59, 999);
+
+			const usePaidAt = input.mode === "realizado";
+
+			const where: Prisma.CashFlowWhereInput = {
+				deletedAt: null,
+				organizationId: ctx.organizationId,
+			};
+
+			if (usePaidAt) {
+				where.paidAt = { not: null, gte: start, lte: end };
+			} else {
+				where.date = { gte: start, lte: end };
+			}
+
+			const items = await ctx.db.cashFlow.findMany({
+				where,
+				select: {
+					type: true,
+					amount: true,
+					date: true,
+					paidAt: true,
+				},
+			});
+
+			const result: Record<string, { recebimentos: number; pagamentos: number }> = {};
+
+			for (const item of items) {
+				const refDate = usePaidAt ? item.paidAt! : item.date;
+				const key = `${refDate.getFullYear()}-${String(refDate.getMonth() + 1).padStart(2, "0")}`;
+
+				if (!result[key]) {
+					result[key] = { recebimentos: 0, pagamentos: 0 };
+				}
+
+				const amt = Number(item.amount);
+				if (item.type === "IN") {
+					result[key]!.recebimentos += amt;
+				} else {
+					result[key]!.pagamentos += amt;
+				}
+			}
+
+			const months: string[] = [];
+			let y = fromY;
+			let m = fromM;
+			while (y < toY || (y === toY && m <= toM)) {
+				months.push(`${y}-${String(m).padStart(2, "0")}`);
+				m++;
+				if (m > 12) {
+					m = 1;
+					y++;
+				}
+			}
+
+			for (const key of months) {
+				if (!result[key]) {
+					result[key] = { recebimentos: 0, pagamentos: 0 };
+				}
+			}
+
+			return result;
 		}),
 
 	create: protectedProcedure

@@ -48,10 +48,11 @@ Cada arquivo exporta um router registrado no `appRouter`.
 
 ## cashFlowRouter (`cashFlow.ts`)
 
-| Procedure          | Tipo   | Input                                                  | Output / Regras                                    |
-|--------------------|--------|--------------------------------------------------------|----------------------------------------------------|
-| `cashFlow.list`    | query  | type? (IN \| OUT)                                      | id, type, description, value, date                 |
-| `cashFlow.create`  | mutation| type (IN\|OUT), description, value (positivo), date?, serviceOrderId? | value sempre positivo; se vinculado a OS, OS deve estar FINISHED |
+| Procedure             | Tipo   | Input                                                                 | Output / Regras                                    |
+|-----------------------|--------|-----------------------------------------------------------------------|----------------------------------------------------|
+| `cashFlow.list`       | query  | type?, tab?, dateFrom?, dateTo?, clientId?                            | tab: all, IN, OUT, receivable, payable, received, paid, pending |
+| `cashFlow.create`     | mutation| type (IN\|OUT), description, value (positivo), date?, serviceOrderId?| value sempre positivo; se vinculado a OS, OS deve estar FINISHED |
+| `cashFlow.summaryByMonth` | query  | dateFrom (YYYY-MM), dateTo (YYYY-MM), mode (previsao\|realizado)      | Objeto { "YYYY-MM": { recebimentos, pagamentos } }  |
 
 ## budgetRouter (`budget.ts`)
 
