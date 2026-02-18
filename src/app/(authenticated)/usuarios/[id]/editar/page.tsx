@@ -30,18 +30,33 @@ export default function EditarUsuarioPage() {
 		register: registerUser,
 		handleSubmit: handleUserSubmit,
 		reset: resetUser,
+		watch,
+		setValue,
 		formState: { errors: userErrors },
 	} = useForm<EditUserFormData>({
 		resolver: zodResolver(editUserSchema),
-		defaultValues: { name: "", email: "", role: "user" },
+		defaultValues: { name: "", email: "", role: "user", roles: [] },
 	});
+
+	const roles = watch("roles") ?? [];
+	const toggleRole = (role: "gerente" | "financeiro") => {
+		const next = roles.includes(role)
+			? roles.filter((r) => r !== role)
+			: [...roles, role];
+		setValue("roles", next);
+	};
 
 	useEffect(() => {
 		if (user) {
+			const roles = (user as { roles?: string[] }).roles ?? [];
 			resetUser({
 				name: user.name,
 				email: user.email,
 				role: (user.role as "user" | "admin") ?? "user",
+				roles: roles.filter(
+					(r): r is "gerente" | "financeiro" =>
+						r === "gerente" || r === "financeiro",
+				),
 			});
 		}
 	}, [user, resetUser]);
@@ -54,7 +69,13 @@ export default function EditarUsuarioPage() {
 	});
 
 	const onUserSubmit = (data: EditUserFormData) => {
-		update.mutate({ userId: id, ...data });
+		update.mutate({
+			userId: id!,
+			name: data.name,
+			email: data.email,
+			role: data.role,
+			roles: data.roles,
+		});
 	};
 
 	// ── Formulário de senha ───────────────────────────────
@@ -116,6 +137,33 @@ export default function EditarUsuarioPage() {
 					registration={registerUser("role")}
 					error={userErrors.role?.message}
 				/>
+
+				<div className="space-y-2">
+					<div className="text-sm font-medium text-gray-700">Permissões</div>
+					<div className="flex flex-wrap gap-4">
+						<label className="flex cursor-pointer items-center gap-2">
+							<input
+								type="checkbox"
+								checked={roles.includes("gerente")}
+								onChange={() => toggleRole("gerente")}
+								className="rounded border-gray-300"
+							/>
+							<span className="text-sm text-gray-700">Gerente</span>
+						</label>
+						<label className="flex cursor-pointer items-center gap-2">
+							<input
+								type="checkbox"
+								checked={roles.includes("financeiro")}
+								onChange={() => toggleRole("financeiro")}
+								className="rounded border-gray-300"
+							/>
+							<span className="text-sm text-gray-700">Financeiro</span>
+						</label>
+					</div>
+					<p className="text-xs text-gray-500">
+						Gerente e Financeiro podem acessar o Fluxo de Caixa.
+					</p>
+				</div>
 
 				{update.error ? (
 					<p className="text-sm text-red-600">{update.error.message}</p>

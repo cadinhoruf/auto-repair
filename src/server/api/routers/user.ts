@@ -17,7 +17,7 @@ function assertAdmin(role: string | null | undefined) {
 }
 
 export const userRouter = createTRPCRouter({
-	/** Lista todos os usuários com suas organizações (somente admin). */
+	/** Lista todos os usuários com suas organizações e roles (somente admin). */
 	list: protectedProcedure.query(async ({ ctx }) => {
 		assertAdmin(ctx.session.user.role);
 		const result = await auth.api.listUsers({
@@ -25,18 +25,23 @@ export const userRouter = createTRPCRouter({
 			headers: ctx.headers,
 		});
 
-		// Busca as memberships de todos os usuários para enriquecer com dados da organização
 		const userIds = result.users.map((u) => u.id);
-		const memberships = await ctx.db.member.findMany({
-			where: { userId: { in: userIds } },
-			select: {
-				userId: true,
-				role: true,
-				organization: { select: { id: true, name: true } },
-			},
-		});
 
-		// Agrupa memberships por userId
+		const [memberships, userRoles] = await Promise.all([
+			ctx.db.member.findMany({
+				where: { userId: { in: userIds } },
+				select: {
+					userId: true,
+					role: true,
+					organization: { select: { id: true, name: true } },
+				},
+			}),
+			ctx.db.userRole.findMany({
+				where: { userId: { in: userIds } },
+				select: { userId: true, role: true },
+			}),
+		]);
+
 		const membershipsByUser = new Map<
 			string,
 			{ role: string; organization: { id: string; name: string } }[]
@@ -47,9 +52,17 @@ export const userRouter = createTRPCRouter({
 			membershipsByUser.set(m.userId, list);
 		}
 
+		const rolesByUser = new Map<string, string[]>();
+		for (const r of userRoles) {
+			const list = rolesByUser.get(r.userId) ?? [];
+			list.push(r.role);
+			rolesByUser.set(r.userId, list);
+		}
+
 		return result.users.map((user) => ({
 			...user,
 			organizations: membershipsByUser.get(user.id) ?? [],
+			roles: rolesByUser.get(user.id) ?? [],
 		}));
 	}),
 
@@ -65,6 +78,7 @@ export const userRouter = createTRPCRouter({
 				email: z.string().email("Email inválido"),
 				password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
 				role: z.enum(["user", "admin"]).default("user"),
+				roles: z.array(z.enum(["gerente", "financeiro"])).optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -79,7 +93,6 @@ export const userRouter = createTRPCRouter({
 				headers: ctx.headers,
 			});
 
-			// Define o role se não for "user" (padrão)
 			const createdUserId =
 				typeof newUser === "object" && newUser !== null && "user" in newUser
 					? (newUser as { user: { id: string } }).user.id
@@ -92,7 +105,13 @@ export const userRouter = createTRPCRouter({
 				});
 			}
 
-			// Adiciona o novo usuário como membro da organização ativa do admin
+			if (input.roles?.length) {
+				await ctx.db.userRole.createMany({
+					data: input.roles.map((role) => ({ userId: createdUserId, role })),
+					skipDuplicates: true,
+				});
+			}
+
 			const alreadyMember = await ctx.db.member.findFirst({
 				where: {
 					userId: createdUserId,
@@ -122,13 +141,13 @@ export const userRouter = createTRPCRouter({
 				name: z.string().min(1).optional(),
 				email: z.string().email().optional(),
 				role: z.enum(["user", "admin"]).optional(),
+				roles: z.array(z.enum(["gerente", "financeiro"])).optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
 			assertAdmin(ctx.session.user.role);
-			const { userId, role, ...data } = input;
+			const { userId, role, roles, ...data } = input;
 
-			// Atualiza dados do usuário
 			if (Object.keys(data).length > 0) {
 				await auth.api.adminUpdateUser({
 					body: { userId, data },
@@ -136,12 +155,26 @@ export const userRouter = createTRPCRouter({
 				});
 			}
 
-			// Atualiza role separadamente se informado
 			if (role) {
 				await auth.api.setRole({
 					body: { userId, role },
 					headers: ctx.headers,
 				});
+			}
+
+			if (roles !== undefined) {
+				await ctx.db.userRole.deleteMany({
+					where: {
+						userId,
+						role: { in: ["gerente", "financeiro"] },
+					},
+				});
+				if (roles.length > 0) {
+					await ctx.db.userRole.createMany({
+						data: roles.map((r) => ({ userId, role: r })),
+						skipDuplicates: true,
+					});
+				}
 			}
 
 			return { success: true };

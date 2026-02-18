@@ -11,6 +11,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
+import { canAccessCashFlow } from "@/lib/permissions";
 import { auth } from "@/server/better-auth";
 import { db } from "@/server/db";
 
@@ -149,3 +150,21 @@ export const protectedProcedure = t.procedure
 			},
 		});
 	});
+
+/**
+ * Procedure para Fluxo de Caixa — requer role admin, gerente ou financeiro.
+ */
+export const cashFlowProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+	const allowed = await canAccessCashFlow(
+		db,
+		ctx.session.user.id,
+		ctx.session.user.role,
+	);
+	if (!allowed) {
+		throw new TRPCError({
+			code: "FORBIDDEN",
+			message: "Acesso restrito a gerentes ou financeiro.",
+		});
+	}
+	return next({ ctx });
+});

@@ -52,9 +52,21 @@ model User {
    sessions      Session[]
    accounts      Account[]
    members       Member[]
+   userRoles     UserRole[]
 
    @@unique([email])
    @@map("user")
+}
+
+model UserRole {
+   id     String @id @default(cuid())
+   userId String
+   role   String
+   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+   @@unique([userId, role])
+   @@index([userId])
+   @@map("user_role")
 }
 
 model Session {

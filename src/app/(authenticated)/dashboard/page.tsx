@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { canAccessCashFlow } from "@/lib/permissions";
 import { getSession } from "@/server/better-auth/server";
+import { db } from "@/server/db";
 
 export const metadata: Metadata = {
 	title: "Painel",
@@ -11,7 +13,7 @@ export const metadata: Metadata = {
 const cards = [
 	{ href: "/clientes", label: "Clientes", description: "Gerenciar clientes da oficina" },
 	{ href: "/ordens-servico", label: "Ordens de Serviço", description: "Acompanhar serviços" },
-	{ href: "/caixa", label: "Fluxo de Caixa", description: "Entradas e saídas" },
+	{ href: "/caixa", label: "Fluxo de Caixa", description: "Entradas e saídas", cashFlowOnly: true },
 	{ href: "/orcamentos", label: "Orçamentos", description: "Gerar orçamentos em PDF" },
 	{ href: "/catalogo", label: "Catálogo", description: "Itens e serviços cadastrados" },
 	{ href: "/usuarios", label: "Usuários", description: "Gerenciar usuários do sistema", adminOnly: true },
@@ -21,8 +23,14 @@ const cards = [
 export default async function DashboardPage() {
 	const session = await getSession();
 	const isAdmin = session?.user.role === "admin";
+	const canAccessCaixa =
+		session && (await canAccessCashFlow(db, session.user.id, session.user.role));
 
-	const visibleCards = cards.filter((c) => !c.adminOnly || isAdmin);
+	const visibleCards = cards.filter(
+		(c) =>
+			(!c.adminOnly || isAdmin) &&
+			(!(c as { cashFlowOnly?: boolean }).cashFlowOnly || canAccessCaixa),
+	);
 
 	return (
 		<div>

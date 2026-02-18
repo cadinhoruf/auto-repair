@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { canAccessCashFlow } from "@/lib/permissions";
 import { SidebarNav } from "@/app/(authenticated)/_components/sidebar-nav";
 import { auth } from "@/server/better-auth";
 import { getSession } from "@/server/better-auth/server";
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-type NavLinkItem = { href: string; label: string; adminOnly?: boolean };
+type NavLinkItem = { href: string; label: string; adminOnly?: boolean; cashFlowOnly?: boolean };
 
 const navGroups: { group: string; links: NavLinkItem[] }[] = [
   {
@@ -29,7 +30,7 @@ const navGroups: { group: string; links: NavLinkItem[] }[] = [
   {
     group: "Financeiro",
     links: [
-      { href: "/caixa", label: "Fluxo de caixa" },
+      { href: "/caixa", label: "Fluxo de caixa", cashFlowOnly: true },
     ],
   },
   {
@@ -50,10 +51,14 @@ export default async function AuthenticatedLayout({
   if (!session) redirect("/");
 
   const isAdmin = session.user.role === "admin";
+  const canAccessCaixa = await canAccessCashFlow(db, session.user.id, session.user.role);
   const visibleGroups = navGroups
     .map(({ group, links }) => ({
       group,
-      links: links.filter((link) => !link.adminOnly || isAdmin),
+      links: links.filter(
+        (link) =>
+          (!link.adminOnly || isAdmin) && (!link.cashFlowOnly || canAccessCaixa),
+      ),
     }))
     .filter((g) => g.links.length > 0);
 

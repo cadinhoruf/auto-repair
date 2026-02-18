@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, cashFlowProcedure } from "@/server/api/trpc";
 import type { Prisma } from "../../../../generated/prisma/client";
 
 const typeEnum = z.enum(["IN", "OUT"]);
@@ -23,7 +23,7 @@ function startOfDay(d: Date) {
 }
 
 export const cashFlowRouter = createTRPCRouter({
-	list: protectedProcedure
+	list: cashFlowProcedure
 		.input(
 			z.object({
 				type: typeEnum.optional(),
@@ -116,7 +116,7 @@ export const cashFlowRouter = createTRPCRouter({
 		}),
 
 	/** Resumo agregado por mês para a tabela pivot. */
-	summaryByMonth: protectedProcedure
+	summaryByMonth: cashFlowProcedure
 		.input(
 			z.object({
 				dateFrom: z.string().regex(/^\d{4}-\d{2}$/, "Formato: YYYY-MM"),
@@ -197,7 +197,7 @@ export const cashFlowRouter = createTRPCRouter({
 		}),
 
 	/** Resumo agregado por dia para a tabela pivot. */
-	summaryByDay: protectedProcedure
+	summaryByDay: cashFlowProcedure
 		.input(
 			z.object({
 				dateFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato: YYYY-MM-DD"),
@@ -253,7 +253,7 @@ export const cashFlowRouter = createTRPCRouter({
 			return result;
 		}),
 
-	create: protectedProcedure
+	create: cashFlowProcedure
 		.input(
 			z.object({
 				type: typeEnum,
@@ -325,7 +325,7 @@ export const cashFlowRouter = createTRPCRouter({
 		}),
 
 	/** Define a data de pagamento (quando foi pago). Envie string vazia para limpar. */
-	setPaidAt: protectedProcedure
+	setPaidAt: cashFlowProcedure
 		.input(
 			z.object({
 				cashFlowId: z.string().min(1, "ID é obrigatório"),
