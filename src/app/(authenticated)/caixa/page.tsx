@@ -30,6 +30,12 @@ function formatMonthLabel(ym: string): string {
 	return `${MONTH_NAMES[m - 1] ?? m}/${String(y).slice(-2)}`;
 }
 
+function formatDayLabel(ymd: string): string {
+	const [y, m, d] = ymd.split("-").map(Number);
+	if (!y || !m || !d) return ymd;
+	return `${String(d).padStart(2, "0")}/${String(m).padStart(2, "0")}`;
+}
+
 function formatBrl(n: number) {
 	return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(n);
 }
@@ -151,6 +157,7 @@ export default function CaixaPage() {
 	const { from: defaultFrom, to: defaultTo } = getDefaultPivotRange();
 	const [pivotMonthFrom, setPivotMonthFrom] = useState(defaultFrom);
 	const [pivotMonthTo, setPivotMonthTo] = useState(defaultTo);
+	const [pivotGranularity, setPivotGranularity] = useState<"month" | "day">("month");
 	const [pivotMode, setPivotMode] = useState<"previsao" | "realizado">("previsao");
 	const [listTab, setListTab] = useState<PivotListTab>("receivable");
 	const [dateFrom, setDateFrom] = useState("");
@@ -172,11 +179,28 @@ export default function CaixaPage() {
 			return lastDay.toISOString().slice(0, 10);
 		})();
 
+	const dayDateFrom = `${pivotMonthFrom}-01`;
+	const dayDateTo = (() => {
+		const [y, m] = pivotMonthFrom.split("-").map(Number);
+		if (!y || !m) return pivotMonthFrom + "-28";
+		const lastDay = new Date(y, m, 0);
+		return lastDay.toISOString().slice(0, 10);
+	})();
+
 	const { data: summary } = api.cashFlow.summaryByMonth.useQuery({
 		dateFrom: pivotMonthFrom,
 		dateTo: pivotMonthTo,
 		mode: pivotMode,
 	});
+
+	const { data: summaryDay } = api.cashFlow.summaryByDay.useQuery(
+		{
+			dateFrom: dayDateFrom,
+			dateTo: dayDateTo,
+			mode: pivotMode,
+		},
+		{ enabled: pivotGranularity === "day" },
+	);
 
 	const { data: entries, isLoading } = api.cashFlow.list.useQuery({
 		tab: listTab,
@@ -190,6 +214,7 @@ export default function CaixaPage() {
 			toast.success("Data de pagamento atualizada.");
 			await utils.cashFlow.list.invalidate();
 			await utils.cashFlow.summaryByMonth.invalidate();
+			await utils.cashFlow.summaryByDay.invalidate();
 		},
 	});
 
@@ -237,6 +262,39 @@ export default function CaixaPage() {
 
 		return { months, pivotRows };
 	}, [summary, pivotMonthFrom, pivotMonthTo]);
+
+	const { days, pivotRowsDay } = useMemo(() => {
+		const days: string[] = [];
+		const start = new Date(dayDateFrom + "T12:00:00");
+		const end = new Date(dayDateTo + "T12:00:00");
+		const curr = new Date(start);
+		while (curr <= end) {
+			days.push(curr.toISOString().slice(0, 10));
+			curr.setDate(curr.getDate() + 1);
+		}
+
+		const recebimentos = days.map((dd) => (summaryDay?.[dd]?.recebimentos ?? 0));
+		const pagamentos = days.map((dd) => (summaryDay?.[dd]?.pagamentos ?? 0));
+		const geracao = days.map((_, i) => recebimentos[i]! - pagamentos[i]!);
+		let saldo = 0;
+		const saldoInicial: number[] = [];
+		const saldoFinal: number[] = [];
+		for (let i = 0; i < days.length; i++) {
+			saldoInicial.push(saldo);
+			saldo += geracao[i]!;
+			saldoFinal.push(saldo);
+		}
+
+		const pivotRowsDay = [
+			{ label: "Recebimentos", values: recebimentos, color: "text-blue-600" },
+			{ label: "Pagamentos", values: pagamentos, color: "text-red-600" },
+			{ label: "Geração de Caixa", values: geracao, color: "" },
+			{ label: "Saldo Inicial", values: saldoInicial, color: "" },
+			{ label: "Saldo Final", values: saldoFinal, color: "" },
+		];
+
+		return { days, pivotRowsDay };
+	}, [summaryDay, dayDateFrom, dayDateTo]);
 
 	const columns = useMemo<ColumnDef<CashFlowEntry>[]>(
 		() => [
@@ -356,22 +414,52 @@ export default function CaixaPage() {
 			<div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
 				<div className="border-b border-gray-200 bg-gray-50/80 px-4 py-3">
 					<div className="flex flex-wrap items-center gap-4">
-						<h2 className="font-semibold text-gray-900">Resumo mensal</h2>
+						<h2 className="font-semibold text-gray-900">Resumo</h2>
+						<div className="flex rounded-lg border border-gray-200 p-0.5 bg-white">
+							<button
+								type="button"
+								onClick={() => setPivotGranularity("month")}
+								className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
+									pivotGranularity === "month"
+										? "bg-gray-200 text-gray-900"
+										: "text-gray-600 hover:text-gray-900"
+								}`}
+							>
+								Por mês
+							</button>
+							<button
+								type="button"
+								onClick={() => setPivotGranularity("day")}
+								className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
+									pivotGranularity === "day"
+										? "bg-gray-200 text-gray-900"
+										: "text-gray-600 hover:text-gray-900"
+								}`}
+							>
+								Por dia
+							</button>
+						</div>
 						<div className="flex items-center gap-2">
-							<label className="text-sm text-gray-600">Período:</label>
+							<label className="text-sm text-gray-600">
+								{pivotGranularity === "month" ? "Período:" : "Mês:"}
+							</label>
 							<input
 								type="month"
 								value={pivotMonthFrom}
 								onChange={(e) => setPivotMonthFrom(e.target.value)}
 								className="rounded-lg border border-gray-200 px-2 py-1.5 text-sm"
 							/>
-							<span className="text-gray-500">até</span>
-							<input
-								type="month"
-								value={pivotMonthTo}
-								onChange={(e) => setPivotMonthTo(e.target.value)}
-								className="rounded-lg border border-gray-200 px-2 py-1.5 text-sm"
-							/>
+							{pivotGranularity === "month" && (
+								<>
+									<span className="text-gray-500">até</span>
+									<input
+										type="month"
+										value={pivotMonthTo}
+										onChange={(e) => setPivotMonthTo(e.target.value)}
+										className="rounded-lg border border-gray-200 px-2 py-1.5 text-sm"
+									/>
+								</>
+							)}
 						</div>
 						<div className="flex rounded-lg border border-gray-200 p-0.5 bg-white">
 							<button
@@ -406,42 +494,53 @@ export default function CaixaPage() {
 								<th className="px-4 py-3 text-left font-medium text-gray-600 min-w-[140px]">
 									{pivotMode === "previsao" ? "Previsão" : "Realizado"}
 								</th>
-								{months.map((mm) => (
-									<th
-										key={mm}
-										className="px-4 py-3 text-right font-medium text-gray-600 whitespace-nowrap"
-									>
-										{formatMonthLabel(mm)}
-									</th>
-								))}
+								{pivotGranularity === "month"
+									? months.map((mm) => (
+											<th
+												key={mm}
+												className="px-4 py-3 text-right font-medium text-gray-600 whitespace-nowrap"
+											>
+												{formatMonthLabel(mm)}
+											</th>
+										))
+									: days.map((dd) => (
+											<th
+												key={dd}
+												className="px-3 py-3 text-right font-medium text-gray-600 whitespace-nowrap text-xs"
+											>
+												{formatDayLabel(dd)}
+											</th>
+										))}
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-gray-100">
-							{pivotRows.map((row, ri) => (
-								<tr
-									key={row.label}
-									className={ri === 0 || ri === 1 ? "bg-gray-50/50" : ""}
-								>
-									<td className="px-4 py-2.5 font-medium text-gray-700">
-										{row.label}
-									</td>
-									{row.values.map((val, i) => (
-										<td
-											key={months[i]}
-											className={`px-4 py-2.5 text-right ${row.color} ${
-												(row.label === "Geração de Caixa" ||
-													row.label === "Saldo Inicial" ||
-													row.label === "Saldo Final") &&
-												val < 0
-													? "text-red-600"
-													: ""
-											}`}
-										>
-											{formatPivotValue(val)}
+							{(pivotGranularity === "month" ? pivotRows : pivotRowsDay).map(
+								(row, ri) => (
+									<tr
+										key={row.label}
+										className={ri === 0 || ri === 1 ? "bg-gray-50/50" : ""}
+									>
+										<td className="px-4 py-2.5 font-medium text-gray-700">
+											{row.label}
 										</td>
-									))}
-								</tr>
-							))}
+										{row.values.map((val, i) => (
+											<td
+												key={i}
+												className={`px-3 py-2.5 text-right text-xs ${row.color} ${
+													(row.label === "Geração de Caixa" ||
+														row.label === "Saldo Inicial" ||
+														row.label === "Saldo Final") &&
+													val < 0
+														? "text-red-600"
+														: ""
+												}`}
+											>
+												{formatPivotValue(val)}
+											</td>
+										))}
+									</tr>
+								),
+							)}
 						</tbody>
 					</table>
 				</div>

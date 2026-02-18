@@ -196,6 +196,63 @@ export const cashFlowRouter = createTRPCRouter({
 			return result;
 		}),
 
+	/** Resumo agregado por dia para a tabela pivot. */
+	summaryByDay: protectedProcedure
+		.input(
+			z.object({
+				dateFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato: YYYY-MM-DD"),
+				dateTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato: YYYY-MM-DD"),
+				mode: z.enum(["previsao", "realizado"]),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			const start = new Date(input.dateFrom + "T00:00:00");
+			const end = new Date(input.dateTo + "T23:59:59.999");
+
+			const usePaidAt = input.mode === "realizado";
+
+			const where: Prisma.CashFlowWhereInput = {
+				deletedAt: null,
+				organizationId: ctx.organizationId,
+			};
+
+			if (usePaidAt) {
+				where.paidAt = { not: null, gte: start, lte: end };
+			} else {
+				where.date = { gte: start, lte: end };
+			}
+
+			const items = await ctx.db.cashFlow.findMany({
+				where,
+				select: {
+					type: true,
+					amount: true,
+					date: true,
+					paidAt: true,
+				},
+			});
+
+			const result: Record<string, { recebimentos: number; pagamentos: number }> = {};
+
+			for (const item of items) {
+				const refDate = usePaidAt ? item.paidAt! : item.date;
+				const key = refDate.toISOString().slice(0, 10);
+
+				if (!result[key]) {
+					result[key] = { recebimentos: 0, pagamentos: 0 };
+				}
+
+				const amt = Number(item.amount);
+				if (item.type === "IN") {
+					result[key]!.recebimentos += amt;
+				} else {
+					result[key]!.pagamentos += amt;
+				}
+			}
+
+			return result;
+		}),
+
 	create: protectedProcedure
 		.input(
 			z.object({
