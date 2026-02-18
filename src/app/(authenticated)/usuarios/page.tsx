@@ -92,31 +92,15 @@ export default function UsuariosPage() {
 										)}
 									</td>
 									<td className="px-4 py-3">
-										<div className="flex flex-wrap items-center gap-1">
-											<span
-												className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-													user.role === "admin"
-														? "bg-blue-100 text-blue-700"
-														: "bg-gray-100 text-gray-600"
-												}`}
-											>
-												{user.role === "admin" ? "Administrador" : "Usuário"}
-											</span>
-											{(user as { roles?: string[] }).roles?.includes(
-												"gerente",
-											) && (
-												<span className="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-													Gerente
-												</span>
-											)}
-											{(user as { roles?: string[] }).roles?.includes(
-												"financeiro",
-											) && (
-												<span className="inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
-													Financeiro
-												</span>
-											)}
-										</div>
+										<span
+											className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+												user.role === "admin"
+													? "bg-blue-100 text-blue-700"
+													: "bg-gray-100 text-gray-600"
+											}`}
+										>
+											{user.role === "admin" ? "Administrador" : "Usuário"}
+										</span>
 									</td>
 									<td className="px-4 py-3">
 										{user.banned ? (

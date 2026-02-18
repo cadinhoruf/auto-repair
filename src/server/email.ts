@@ -24,7 +24,12 @@ export async function sendInvitationEmail({
 	inviteLink,
 	expiresAt,
 }: InvitationEmailParams) {
-	const roleName = role === "admin" ? "Administrador" : "Membro";
+	const roleLabels: Record<string, string> = {
+		owner: "Proprietário",
+		admin: "Gestor",
+		member: "Colaborador",
+	};
+	const roleName = roleLabels[role] ?? role;
 	const expiresDate = formatDateBR(expiresAt);
 
 	const { error } = await resend.emails.send({

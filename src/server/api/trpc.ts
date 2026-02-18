@@ -152,18 +152,19 @@ export const protectedProcedure = t.procedure
 	});
 
 /**
- * Procedure para Fluxo de Caixa — requer role admin, gerente ou financeiro.
+ * Procedure para Fluxo de Caixa — requer role admin, ou na org: proprietário, gestor ou financeiro.
  */
 export const cashFlowProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 	const allowed = await canAccessCashFlow(
 		db,
 		ctx.session.user.id,
 		ctx.session.user.role,
+		ctx.organizationId,
 	);
 	if (!allowed) {
 		throw new TRPCError({
 			code: "FORBIDDEN",
-			message: "Acesso restrito a gerentes ou financeiro.",
+			message: "Acesso restrito a proprietário, gestor ou financeiro da organização.",
 		});
 	}
 	return next({ ctx });

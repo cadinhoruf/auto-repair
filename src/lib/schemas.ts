@@ -40,7 +40,6 @@ export const createUserSchema = z.object({
 	email: z.string().min(1, "E-mail é obrigatório").email("E-mail inválido"),
 	password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
 	role: z.enum(["user", "admin"]),
-	roles: z.array(z.enum(["gerente", "financeiro"])),
 });
 export type CreateUserFormData = z.infer<typeof createUserSchema>;
 
@@ -49,7 +48,6 @@ export const editUserSchema = z.object({
 	name: z.string().min(1, "Nome é obrigatório"),
 	email: z.string().min(1, "E-mail é obrigatório").email("E-mail inválido"),
 	role: z.enum(["user", "admin"]),
-	roles: z.array(z.enum(["gerente", "financeiro"])),
 });
 export type EditUserFormData = z.infer<typeof editUserSchema>;
 

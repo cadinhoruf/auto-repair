@@ -9,21 +9,12 @@ import { Button } from "@/app/_components/ui/button";
 import { FormField } from "@/app/_components/ui/form-field";
 import { PageHeader } from "@/app/_components/ui/page-header";
 import { formatDateBR } from "@/lib/date-br";
+import {
+	ORG_EXTRA_ROLE_OPTIONS,
+	ORG_MEMBER_ROLE_OPTIONS,
+} from "@/lib/role-options";
 import { type OrganizationFormData, organizationSchema } from "@/lib/schemas";
 import { api } from "@/trpc/react";
-
-const memberRoleOptions = [
-  { value: "member", label: "Membro" },
-  { value: "admin", label: "Admin" },
-  { value: "owner", label: "Proprietário" },
-
-
-];
-
-const inviteRoleOptions = [
-  { value: "member", label: "Membro" },
-  { value: "admin", label: "Admin" },
-];
 
 export default function EditarOrganizacaoPage() {
   const router = useRouter();
@@ -198,19 +189,34 @@ export default function EditarOrganizacaoPage() {
               <thead className="border-b border-gray-200 bg-gray-50">
                 <tr>
                   <th className="px-4 py-2 font-medium text-gray-600">Nome</th>
+                  <th className="px-4 py-2 font-medium text-gray-600">Email</th>
+                  <th className="px-4 py-2 font-medium text-gray-600">Papel</th>
                   <th className="px-4 py-2 font-medium text-gray-600">
-                    Email
+                    Permissões
                   </th>
-                  <th className="px-4 py-2 font-medium text-gray-600">
-                    Papel
-                  </th>
-                  <th className="px-4 py-2 font-medium text-gray-600">
-                    Ações
-                  </th>
+                  <th className="px-4 py-2 font-medium text-gray-600">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {org.members.map((member) => (
+                {org.members.map((member) => {
+                 	const hasFinanceiro = member.memberRoles?.some(
+					(r) => r.role === "financeiro",
+				) ?? false;
+					const handleRoleChange = (role: "owner" | "admin" | "member") => {
+						updateRole.mutate({
+							memberId: member.id,
+							role,
+							extraRoles: hasFinanceiro ? ["financeiro"] : [],
+						});
+					};
+					const handleFinanceiroChange = (checked: boolean) => {
+						updateRole.mutate({
+							memberId: member.id,
+							role: member.role as "owner" | "admin" | "member",
+							extraRoles: checked ? ["financeiro"] : [],
+						});
+					};
+					return (
                   <tr key={member.id}>
                     <td className="px-4 py-2 font-medium text-gray-900">
                       {member.user.name}
@@ -223,21 +229,32 @@ export default function EditarOrganizacaoPage() {
                         className="h-8 rounded-md border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
                         value={member.role}
                         onChange={(e) =>
-                          updateRole.mutate({
-                            memberId: member.id,
-                            role: e.target.value as
-                              | "owner"
-                              | "admin"
-                              | "member",
-                          })
+                          handleRoleChange(
+                            e.target.value as "owner" | "admin" | "member",
+                          )
                         }
                       >
-                        {memberRoleOptions.map((o) => (
+                        {ORG_MEMBER_ROLE_OPTIONS.map((o) => (
                           <option key={o.value} value={o.value}>
                             {o.label}
                           </option>
                         ))}
                       </select>
+                    </td>
+                    <td className="px-4 py-2">
+                      <label className="flex cursor-pointer items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={hasFinanceiro}
+                          onChange={(e) =>
+                            handleFinanceiroChange(e.target.checked)
+                          }
+                          className="rounded border-gray-300"
+                        />
+                        <span className="text-xs text-gray-700">
+                          {ORG_EXTRA_ROLE_OPTIONS[0]?.label ?? "Financeiro"}
+                        </span>
+                      </label>
                     </td>
                     <td className="px-4 py-2">
                       <Button
@@ -258,7 +275,8 @@ export default function EditarOrganizacaoPage() {
                       </Button>
                     </td>
                   </tr>
-                ))}
+					);
+                })}
               </tbody>
             </table>
           </div>
@@ -308,7 +326,7 @@ export default function EditarOrganizacaoPage() {
               value={inviteRole}
               onChange={(e) => setInviteRole(e.target.value)}
             >
-              {inviteRoleOptions.map((o) => (
+              {ORG_MEMBER_ROLE_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
                 </option>
@@ -324,7 +342,7 @@ export default function EditarOrganizacaoPage() {
                 inviteMember.mutate({
                   organizationId: id,
                   email: inviteEmail,
-                  role: inviteRole as "admin" | "member",
+                  role: inviteRole as "owner" | "admin" | "member",
                 });
               }
             }}
@@ -369,7 +387,8 @@ export default function EditarOrganizacaoPage() {
                       <td className="px-4 py-2 text-gray-900">{inv.email}</td>
                       <td className="px-4 py-2">
                         <span className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                          {inv.role === "admin" ? "Admin" : "Membro"}
+                          {ORG_MEMBER_ROLE_OPTIONS.find((o) => o.value === inv.role)
+                            ?.label ?? inv.role}
                         </span>
                       </td>
                       <td className="px-4 py-2 text-gray-500">

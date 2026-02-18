@@ -1,22 +1,47 @@
 import type { PrismaClient } from "../../generated/prisma/client";
 
-const CASH_FLOW_ROLES = ["gerente", "financeiro"] as const;
+/** Roles que permitem acesso ao Fluxo de Caixa (Member.role) */
+const CASH_FLOW_MEMBER_ROLES = ["owner", "admin"] as const;
+
+/** Roles extras que permitem acesso ao Fluxo de Caixa (MemberRole) */
+const CASH_FLOW_EXTRA_ROLES = ["financeiro"] as const;
+
+/**
+ * Retorna true se o usuário é proprietário (owner) da organização.
+ */
+export async function isOrgOwner(
+	db: PrismaClient,
+	userId: string,
+	organizationId: string,
+): Promise<boolean> {
+	const member = await db.member.findFirst({
+		where: { userId, organizationId, role: "owner" },
+	});
+	return !!member;
+}
 
 /**
  * Retorna true se o usuário pode acessar o Fluxo de Caixa.
- * Admin tem acesso total; gerente e financeiro também.
+ * Admin global tem acesso; na org ativa: proprietário, gestor ou financeiro.
  */
 export async function canAccessCashFlow(
 	db: PrismaClient,
 	userId: string,
-	userRole?: string | null,
+	userRole: string | null | undefined,
+	activeOrganizationId: string | null | undefined,
 ): Promise<boolean> {
 	if (userRole === "admin") return true;
+	if (!activeOrganizationId) return false;
 
-	const roles = await db.userRole.findMany({
-		where: { userId },
-		select: { role: true },
+	const member = await db.member.findFirst({
+		where: { userId, organizationId: activeOrganizationId },
+		include: { memberRoles: { select: { role: true } } },
 	});
-	const roleNames = roles.map((r) => r.role);
-	return CASH_FLOW_ROLES.some((r) => roleNames.includes(r));
+
+	if (!member) return false;
+	if (CASH_FLOW_MEMBER_ROLES.includes(member.role as (typeof CASH_FLOW_MEMBER_ROLES)[number]))
+		return true;
+
+	const extraRoles = member.memberRoles.map((r) => r.role);
+	return CASH_FLOW_EXTRA_ROLES.some((r) => extraRoles.includes(r));
 }

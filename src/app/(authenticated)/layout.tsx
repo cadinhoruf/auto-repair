@@ -51,20 +51,33 @@ export default async function AuthenticatedLayout({
   if (!session) redirect("/");
 
   const isAdmin = session.user.role === "admin";
-  const canAccessCaixa = await canAccessCashFlow(db, session.user.id, session.user.role);
+  const activeOrgId = (session.session as Record<string, unknown>)
+    .activeOrganizationId as string | null | undefined;
+  const canAccessCaixa = await canAccessCashFlow(
+    db,
+    session.user.id,
+    session.user.role,
+    activeOrgId,
+  );
+  const canManageOrgs =
+    isAdmin ||
+    !!(await db.member.findFirst({
+      where: { userId: session.user.id, role: "owner" },
+    }));
   const visibleGroups = navGroups
     .map(({ group, links }) => ({
       group,
-      links: links.filter(
-        (link) =>
-          (!link.adminOnly || isAdmin) && (!link.cashFlowOnly || canAccessCaixa),
-      ),
+      links: links.filter((link) => {
+        const allowedByRole =
+          link.href === "/organizacoes"
+            ? canManageOrgs
+            : !link.adminOnly || isAdmin;
+        return allowedByRole && (!link.cashFlowOnly || canAccessCaixa);
+      }),
     }))
     .filter((g) => g.links.length > 0);
 
   // Busca o nome da organização ativa
-  const activeOrgId = (session.session as Record<string, unknown>)
-    .activeOrganizationId as string | null | undefined;
   const activeOrg = activeOrgId
     ? await db.organization.findUnique({
       where: { id: activeOrgId },

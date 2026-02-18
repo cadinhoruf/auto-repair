@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
 import { env } from "@/env";
+import { isOrgOwner } from "@/lib/permissions";
 import { sendInvitationEmail } from "@/server/email";
 
 /**
@@ -17,25 +18,62 @@ function assertAdmin(role: string | null | undefined) {
 	}
 }
 
+/**
+ * Garante que o usuário é admin global OU proprietário da organização.
+ */
+async function assertOrgOwnerOrAdmin(
+	db: Parameters<typeof isOrgOwner>[0],
+	userId: string,
+	userRole: string | null | undefined,
+	organizationId: string,
+) {
+	if (userRole === "admin") return;
+	const owner = await isOrgOwner(db, userId, organizationId);
+	if (!owner) {
+		throw new TRPCError({
+			code: "FORBIDDEN",
+			message: "Apenas o proprietário da organização ou um administrador pode realizar esta ação.",
+		});
+	}
+}
+
 export const organizationRouter = createTRPCRouter({
-	/** Lista todas as organizações (somente admin). */
+	/** Lista organizações: admin vê todas; proprietário vê apenas as suas. */
 	list: protectedProcedure.query(async ({ ctx }) => {
-		assertAdmin(ctx.session.user.role);
+		if (ctx.session.user.role === "admin") {
+			return ctx.db.organization.findMany({
+				orderBy: { createdAt: "desc" },
+				include: {
+					_count: { select: { members: true } },
+				},
+			});
+		}
+		// Proprietário vê apenas orgs onde é owner
+		const memberships = await ctx.db.member.findMany({
+			where: { userId: ctx.session.user.id, role: "owner" },
+			select: { organizationId: true },
+		});
+		const orgIds = memberships.map((m) => m.organizationId);
+		if (orgIds.length === 0) return [];
 		return ctx.db.organization.findMany({
+			where: { id: { in: orgIds } },
 			orderBy: { createdAt: "desc" },
 			include: {
-				_count: {
-					select: { members: true },
-				},
+				_count: { select: { members: true } },
 			},
 		});
 	}),
 
-	/** Busca uma organização por ID (somente admin). */
+	/** Busca uma organização por ID (admin ou proprietário dessa org). */
 	getById: protectedProcedure
 		.input(z.object({ id: z.string() }))
 		.query(async ({ ctx, input }) => {
-			assertAdmin(ctx.session.user.role);
+			await assertOrgOwnerOrAdmin(
+				ctx.db,
+				ctx.session.user.id,
+				ctx.session.user.role,
+				input.id,
+			);
 			return ctx.db.organization.findUniqueOrThrow({
 				where: { id: input.id },
 				include: {
@@ -44,6 +82,7 @@ export const organizationRouter = createTRPCRouter({
 							user: {
 								select: { id: true, name: true, email: true, role: true },
 							},
+							memberRoles: { select: { role: true } },
 						},
 						orderBy: { createdAt: "asc" },
 					},
@@ -83,7 +122,7 @@ export const organizationRouter = createTRPCRouter({
 			});
 		}),
 
-	/** Atualiza uma organização (somente admin). */
+	/** Atualiza uma organização (admin ou proprietário dessa org). */
 	update: protectedProcedure
 		.input(
 			z.object({
@@ -94,7 +133,12 @@ export const organizationRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			assertAdmin(ctx.session.user.role);
+			await assertOrgOwnerOrAdmin(
+				ctx.db,
+				ctx.session.user.id,
+				ctx.session.user.role,
+				input.id,
+			);
 
 			const existing = await ctx.db.organization.findUnique({
 				where: { slug: input.slug },
@@ -137,11 +181,16 @@ export const organizationRouter = createTRPCRouter({
 			return { success: true };
 		}),
 
-	/** Lista membros de uma organização (somente admin). */
+	/** Lista membros de uma organização (admin ou proprietário dessa org). */
 	listMembers: protectedProcedure
 		.input(z.object({ organizationId: z.string() }))
 		.query(async ({ ctx, input }) => {
-			assertAdmin(ctx.session.user.role);
+			await assertOrgOwnerOrAdmin(
+				ctx.db,
+				ctx.session.user.id,
+				ctx.session.user.role,
+				input.organizationId,
+			);
 			return ctx.db.member.findMany({
 				where: { organizationId: input.organizationId },
 				include: {
@@ -153,7 +202,7 @@ export const organizationRouter = createTRPCRouter({
 			});
 		}),
 
-	/** Adiciona um membro a uma organização (somente admin). */
+	/** Adiciona um membro a uma organização (admin ou proprietário dessa org). */
 	addMember: protectedProcedure
 		.input(
 			z.object({
@@ -163,7 +212,12 @@ export const organizationRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			assertAdmin(ctx.session.user.role);
+			await assertOrgOwnerOrAdmin(
+				ctx.db,
+				ctx.session.user.id,
+				ctx.session.user.role,
+				input.organizationId,
+			);
 
 			const existing = await ctx.db.member.findFirst({
 				where: {
@@ -189,33 +243,63 @@ export const organizationRouter = createTRPCRouter({
 			});
 		}),
 
-	/** Atualiza o papel de um membro (somente admin). */
+	/** Atualiza o papel e roles extras de um membro (admin ou proprietário dessa org). */
 	updateMemberRole: protectedProcedure
 		.input(
 			z.object({
 				memberId: z.string(),
 				role: z.enum(["owner", "admin", "member"]),
+				extraRoles: z.array(z.enum(["financeiro"])).optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			assertAdmin(ctx.session.user.role);
-			return ctx.db.member.update({
+			const member = await ctx.db.member.findUniqueOrThrow({
 				where: { id: input.memberId },
-				data: { role: input.role },
 			});
+			await assertOrgOwnerOrAdmin(
+				ctx.db,
+				ctx.session.user.id,
+				ctx.session.user.role,
+				member.organizationId,
+			);
+
+			await ctx.db.$transaction(async (tx) => {
+				await tx.member.update({
+					where: { id: input.memberId },
+					data: { role: input.role },
+				});
+				await tx.memberRole.deleteMany({
+					where: { memberId: input.memberId },
+				});
+				if (input.extraRoles?.length) {
+					await tx.memberRole.createMany({
+						data: input.extraRoles.map((role) => ({
+							memberId: input.memberId,
+							role,
+						})),
+					});
+				}
+			});
+
+			return { success: true };
 		}),
 
-	/** Remove um membro de uma organização (somente admin). */
+	/** Remove um membro de uma organização (admin ou proprietário dessa org). */
 	removeMember: protectedProcedure
 		.input(z.object({ memberId: z.string() }))
 		.mutation(async ({ ctx, input }) => {
-			assertAdmin(ctx.session.user.role);
-
 			const member = await ctx.db.member.findUniqueOrThrow({
 				where: { id: input.memberId },
 			});
 
-			// Impedir que admin se remova da própria organização
+			await assertOrgOwnerOrAdmin(
+				ctx.db,
+				ctx.session.user.id,
+				ctx.session.user.role,
+				member.organizationId,
+			);
+
+			// Impedir que proprietário se remova da própria organização
 			if (member.userId === ctx.session.user.id && member.organizationId === ctx.organizationId) {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
@@ -230,11 +314,16 @@ export const organizationRouter = createTRPCRouter({
 			return { success: true };
 		}),
 
-	/** Lista todos os usuários disponíveis para adicionar (somente admin). */
+	/** Lista todos os usuários disponíveis para adicionar (admin ou proprietário dessa org). */
 	availableUsers: protectedProcedure
 		.input(z.object({ organizationId: z.string() }))
 		.query(async ({ ctx, input }) => {
-			assertAdmin(ctx.session.user.role);
+			await assertOrgOwnerOrAdmin(
+				ctx.db,
+				ctx.session.user.id,
+				ctx.session.user.role,
+				input.organizationId,
+			);
 
 			const existingMembers = await ctx.db.member.findMany({
 				where: { organizationId: input.organizationId },
@@ -255,17 +344,22 @@ export const organizationRouter = createTRPCRouter({
 
 	// ── Convites (Invitations) ─────────────────────────────
 
-	/** Envia convite por email para uma organização (somente admin global). */
+	/** Envia convite por email para uma organização (admin ou proprietário dessa org). */
 	inviteMember: protectedProcedure
 		.input(
 			z.object({
 				organizationId: z.string(),
 				email: z.string().email("Email inválido"),
-				role: z.enum(["admin", "member"]).default("member"),
+				role: z.enum(["owner", "admin", "member"]).default("member"),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			assertAdmin(ctx.session.user.role);
+			await assertOrgOwnerOrAdmin(
+				ctx.db,
+				ctx.session.user.id,
+				ctx.session.user.role,
+				input.organizationId,
+			);
 
 			// Verifica se o email já é membro da organização
 			const existingMember = await ctx.db.member.findFirst({
@@ -338,11 +432,16 @@ export const organizationRouter = createTRPCRouter({
 			return invitation;
 		}),
 
-	/** Lista convites pendentes de uma organização (somente admin). */
+	/** Lista convites pendentes de uma organização (admin ou proprietário dessa org). */
 	listInvitations: protectedProcedure
 		.input(z.object({ organizationId: z.string() }))
 		.query(async ({ ctx, input }) => {
-			assertAdmin(ctx.session.user.role);
+			await assertOrgOwnerOrAdmin(
+				ctx.db,
+				ctx.session.user.id,
+				ctx.session.user.role,
+				input.organizationId,
+			);
 
 			return ctx.db.invitation.findMany({
 				where: {
@@ -353,12 +452,10 @@ export const organizationRouter = createTRPCRouter({
 			});
 		}),
 
-	/** Cancela um convite pendente (somente admin). */
+	/** Cancela um convite pendente (admin ou proprietário dessa org). */
 	cancelInvitation: protectedProcedure
 		.input(z.object({ invitationId: z.string() }))
 		.mutation(async ({ ctx, input }) => {
-			assertAdmin(ctx.session.user.role);
-
 			const invitation = await ctx.db.invitation.findUnique({
 				where: { id: input.invitationId },
 			});
@@ -369,6 +466,13 @@ export const organizationRouter = createTRPCRouter({
 					message: "Convite não encontrado ou já processado.",
 				});
 			}
+
+			await assertOrgOwnerOrAdmin(
+				ctx.db,
+				ctx.session.user.id,
+				ctx.session.user.role,
+				invitation.organizationId,
+			);
 
 			await ctx.db.invitation.update({
 				where: { id: input.invitationId },
@@ -470,21 +574,52 @@ export const organizationRouter = createTRPCRouter({
 				return { success: true };
 			}
 
-			// Adiciona como membro e marca convite como aceito
-			await ctx.db.$transaction([
-				ctx.db.member.create({
-					data: {
-						id: crypto.randomUUID(),
-						userId: session.user.id,
+			// Se convidado como owner, transferir propriedade do atual owner
+			if (invitation.role === "owner") {
+				const currentOwner = await ctx.db.member.findFirst({
+					where: {
 						organizationId: invitation.organizationId,
-						role: invitation.role,
+						role: "owner",
 					},
-				}),
-				ctx.db.invitation.update({
-					where: { id: input.invitationId },
-					data: { status: "accepted" },
-				}),
-			]);
+				});
+
+				await ctx.db.$transaction(async (tx) => {
+					if (currentOwner) {
+						await tx.member.update({
+							where: { id: currentOwner.id },
+							data: { role: "admin" },
+						});
+					}
+					await tx.member.create({
+						data: {
+							id: crypto.randomUUID(),
+							userId: session.user.id,
+							organizationId: invitation.organizationId,
+							role: "owner",
+						},
+					});
+					await tx.invitation.update({
+						where: { id: input.invitationId },
+						data: { status: "accepted" },
+					});
+				});
+			} else {
+				// Adiciona como membro (admin ou member) e marca convite como aceito
+				await ctx.db.$transaction([
+					ctx.db.member.create({
+						data: {
+							id: crypto.randomUUID(),
+							userId: session.user.id,
+							organizationId: invitation.organizationId,
+							role: invitation.role,
+						},
+					}),
+					ctx.db.invitation.update({
+						where: { id: input.invitationId },
+						data: { status: "accepted" },
+					}),
+				]);
+			}
 
 			// Se o usuário não tem organização ativa, define esta
 			await ctx.db.session.updateMany({

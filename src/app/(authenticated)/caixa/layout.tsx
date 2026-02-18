@@ -16,7 +16,14 @@ export default async function CaixaLayout({
 	const session = await getSession();
 	if (!session) redirect("/");
 
-	const allowed = await canAccessCashFlow(db, session.user.id, session.user.role);
+	const activeOrgId = (session.session as Record<string, unknown>)
+		.activeOrganizationId as string | null | undefined;
+	const allowed = await canAccessCashFlow(
+		db,
+		session.user.id,
+		session.user.role,
+		activeOrgId,
+	);
 	if (!allowed) redirect("/dashboard");
 
 	return children;

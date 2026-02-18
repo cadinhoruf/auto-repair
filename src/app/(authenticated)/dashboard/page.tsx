@@ -17,20 +17,30 @@ const cards = [
 	{ href: "/orcamentos", label: "Orçamentos", description: "Gerar orçamentos em PDF" },
 	{ href: "/catalogo", label: "Catálogo", description: "Itens e serviços cadastrados" },
 	{ href: "/usuarios", label: "Usuários", description: "Gerenciar usuários do sistema", adminOnly: true },
-	{ href: "/organizacoes", label: "Organizações", description: "Gerenciar oficinas e membros", adminOnly: true },
+	{ href: "/organizacoes", label: "Organizações", description: "Gerenciar oficinas e membros", orgOwnerOrAdmin: true },
 ];
 
 export default async function DashboardPage() {
 	const session = await getSession();
 	const isAdmin = session?.user.role === "admin";
+	const activeOrgId = session?.session
+		? ((session.session as Record<string, unknown>).activeOrganizationId as string | null | undefined)
+		: null;
 	const canAccessCaixa =
-		session && (await canAccessCashFlow(db, session.user.id, session.user.role));
+		session &&
+		(await canAccessCashFlow(db, session.user.id, session.user.role, activeOrgId));
+	const canManageOrgs =
+		session &&
+		(isAdmin ||
+			!!(await db.member.findFirst({
+				where: { userId: session.user.id, role: "owner" },
+			})));
 
-	const visibleCards = cards.filter(
-		(c) =>
-			(!c.adminOnly || isAdmin) &&
-			(!(c as { cashFlowOnly?: boolean }).cashFlowOnly || canAccessCaixa),
-	);
+	const visibleCards = cards.filter((c) => {
+		const card = c as { adminOnly?: boolean; cashFlowOnly?: boolean; orgOwnerOrAdmin?: boolean };
+		const allowedByRole = card.orgOwnerOrAdmin ? canManageOrgs : !card.adminOnly || isAdmin;
+		return allowedByRole && (!card.cashFlowOnly || canAccessCaixa);
+	});
 
 	return (
 		<div>

@@ -9,6 +9,7 @@ import { Button } from "@/app/_components/ui/button";
 import { FormField, SelectField } from "@/app/_components/ui/form-field";
 import { PageHeader } from "@/app/_components/ui/page-header";
 import { formatDateBR } from "@/lib/date-br";
+import { USER_ROLE_OPTIONS } from "@/lib/role-options";
 import {
 	type EditUserFormData,
 	editUserSchema,
@@ -30,33 +31,18 @@ export default function EditarUsuarioPage() {
 		register: registerUser,
 		handleSubmit: handleUserSubmit,
 		reset: resetUser,
-		watch,
-		setValue,
 		formState: { errors: userErrors },
 	} = useForm<EditUserFormData>({
 		resolver: zodResolver(editUserSchema),
-		defaultValues: { name: "", email: "", role: "user", roles: [] },
+		defaultValues: { name: "", email: "", role: "user" },
 	});
-
-	const roles = watch("roles") ?? [];
-	const toggleRole = (role: "gerente" | "financeiro") => {
-		const next = roles.includes(role)
-			? roles.filter((r) => r !== role)
-			: [...roles, role];
-		setValue("roles", next);
-	};
 
 	useEffect(() => {
 		if (user) {
-			const roles = (user as { roles?: string[] }).roles ?? [];
 			resetUser({
 				name: user.name,
 				email: user.email,
 				role: (user.role as "user" | "admin") ?? "user",
-				roles: roles.filter(
-					(r): r is "gerente" | "financeiro" =>
-						r === "gerente" || r === "financeiro",
-				),
 			});
 		}
 	}, [user, resetUser]);
@@ -74,7 +60,6 @@ export default function EditarUsuarioPage() {
 			name: data.name,
 			email: data.email,
 			role: data.role,
-			roles: data.roles,
 		});
 	};
 
@@ -99,11 +84,6 @@ export default function EditarUsuarioPage() {
 	const onPwdSubmit = (data: ChangePasswordFormData) => {
 		setPasswordMutation.mutate({ userId: id, newPassword: data.newPassword });
 	};
-
-	const roleOptions = [
-		{ value: "user", label: "Usuário" },
-		{ value: "admin", label: "Administrador" },
-	];
 
 	if (!users) return <p className="text-sm text-gray-500">Carregando...</p>;
 	if (!user) return <p className="text-sm text-red-600">Usuário não encontrado.</p>;
@@ -133,37 +113,10 @@ export default function EditarUsuarioPage() {
 				<SelectField
 					label="Perfil"
 					id="role"
-					options={roleOptions}
+					options={USER_ROLE_OPTIONS}
 					registration={registerUser("role")}
 					error={userErrors.role?.message}
 				/>
-
-				<div className="space-y-2">
-					<div className="text-sm font-medium text-gray-700">Permissões</div>
-					<div className="flex flex-wrap gap-4">
-						<label className="flex cursor-pointer items-center gap-2">
-							<input
-								type="checkbox"
-								checked={roles.includes("gerente")}
-								onChange={() => toggleRole("gerente")}
-								className="rounded border-gray-300"
-							/>
-							<span className="text-sm text-gray-700">Gerente</span>
-						</label>
-						<label className="flex cursor-pointer items-center gap-2">
-							<input
-								type="checkbox"
-								checked={roles.includes("financeiro")}
-								onChange={() => toggleRole("financeiro")}
-								className="rounded border-gray-300"
-							/>
-							<span className="text-sm text-gray-700">Financeiro</span>
-						</label>
-					</div>
-					<p className="text-xs text-gray-500">
-						Gerente e Financeiro podem acessar o Fluxo de Caixa.
-					</p>
-				</div>
 
 				{update.error ? (
 					<p className="text-sm text-red-600">{update.error.message}</p>

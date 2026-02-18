@@ -221,7 +221,7 @@ export default function ConvitePage() {
 							{invitation.organizationName}
 						</p>
 						<p className="mt-1 text-xs text-gray-500">
-							Papel: {invitation.role === "admin" ? "Administrador" : "Membro"}
+							Papel: {invitation.role === "owner" ? "Proprietário" : invitation.role === "admin" ? "Gestor" : "Colaborador"}
 						</p>
 					</div>
 
