@@ -178,13 +178,13 @@ export default function NovaMovimentacaoPage() {
           <div className="space-y-3 rounded-xl border border-gray-200 bg-gray-50/50 p-4">
             <div className="font-medium text-sm text-gray-700">Parcelamento</div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              <div>
-                <label className="mb-1 block text-xs font-medium text-gray-500">
+              <div className="flex flex-col gap-1.5">
+                <label className="block text-xs font-medium text-gray-500">
                   Parcelas
                 </label>
                 <select
                   {...register("installmentsCount")}
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+                  className="h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 >
                   {INSTALLMENT_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value}>
@@ -201,6 +201,7 @@ export default function NovaMovimentacaoPage() {
                     render={({ field }) => (
                       <DateInputBR
                         label="Primeiro vencimento"
+                        labelClassName="text-xs font-medium text-gray-500"
                         value={field.value ?? ""}
                         onChange={field.onChange}
                         error={errors.firstDueDate?.message}
