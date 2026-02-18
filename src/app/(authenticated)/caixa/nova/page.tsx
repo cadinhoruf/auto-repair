@@ -1,8 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { Button } from "@/app/_components/ui/button";
@@ -82,7 +82,6 @@ export default function NovaMovimentacaoPage() {
     );
   }, [preselectedOSId, selectedOS, reset]);
 
-  const type = watch("type");
   const valueStr = watch("value");
   const installmentsCount = Math.max(1, Math.min(24, Number(watch("installmentsCount")) || 1));
   const firstDueDate = watch("firstDueDate");
@@ -241,7 +240,7 @@ export default function NovaMovimentacaoPage() {
               render={({ field }) => (
                 <DateInputBR
                   id="date"
-                  label={installmentsCount > 1 ? "Data (à vista, opcional)" : "Data (à vista) *"}
+                  label="Data (à vista) *"
                   value={field.value ?? ""}
                   onChange={field.onChange}
                   error={errors.date?.message}
@@ -249,11 +248,6 @@ export default function NovaMovimentacaoPage() {
               )}
             />
           )}
-          <p className="text-xs text-gray-500">
-            {installmentsCount > 1
-              ? "Parcelas usam o primeiro vencimento acima."
-              : "Usada quando for à vista."}
-          </p>
 
           {create.error ? (
             <p className="text-sm text-red-600">{create.error.message}</p>
